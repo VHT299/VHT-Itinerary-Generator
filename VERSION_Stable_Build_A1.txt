@@ -1,0 +1,33 @@
+VHT Automation – Stable Build A1
+==================================
+
+Date: Current stable working version
+Status: Stable and tested
+
+Features included in this build:
+- Arrival and departure time fields in sidebar
+- Time parsing from Special Requests text
+- Times displayed in header badge
+- Automatic airport pick-up/drop-off notes in Day 1 and last day transfers
+- Smart route building (HCMC ↔ Hanoi via Central Vietnam)
+- Extended city list (13 cities: HCMC, Hanoi, Da Nang, Hoi An, Hue, Ha Long Bay, Ninh Binh, Sapa, Can Tho, Phu Quoc, Nha Trang, Da Lat, Mui Ne)
+- Extended hotel and activity options for all cities
+- Star rating display for hotel ratings
+- Print-friendly version with screen-only and print-only elements
+- Clean print output without form controls
+- Activity editing with hint messages
+
+Files in this build:
+- index.html (main application file)
+- hotels_from_itineraries.json (hotel data template)
+- index_Stable_Build_A1.html (backup copy of this version)
+
+Previous versions preserved:
+- index_backup.html
+- index_V1.html
+- index_V2.html
+- indeex_old.html
+
+
+
+

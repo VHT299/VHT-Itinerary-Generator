@@ -1,0 +1,130 @@
+{
+  "hotelsByCity": {
+    "Ho Chi Minh City": [
+      "Liberty Central Saigon Riverside",
+      "Au Lac Charner Hotel",
+      "Hotel Nikko Saigon",
+      "Majestic Saigon Hotel",
+      "Rex Hotel Saigon",
+      "Caravelle Saigon",
+      "Park Hyatt Saigon",
+      "Silverland Jolie Hotel",
+      "Alagon D'antique Hotel & Spa",
+      "La Siesta Premium Saigon"
+    ],
+    "Hanoi": [
+      "La Siesta Classic Ma May",
+      "Hanoi Pearl Hotel",
+      "Apricot Hotel Hanoi",
+      "Sofitel Legend Metropole Hanoi",
+      "Peridot Grand Hotel & Spa",
+      "MK Premier Boutique Hotel",
+      "Hanoi La Siesta Trendy",
+      "Acoustic Hotel & Spa",
+      "Oriental Suite Hotel & Spa",
+      "The Oriental Jade Hotel"
+    ],
+    "Da Nang": [
+      "Brilliant Hotel Da Nang",
+      "Novotel Danang Premier Han River",
+      "Sala Da Nang Beach Hotel",
+      "Premier Village Danang Resort",
+      "TMS Hotel Da Nang Beach",
+      "A La Carte Da Nang Beach",
+      "Rosamia Da Nang Hotel",
+      "Grand Mercure Danang",
+      "Furama Resort Danang"
+    ],
+    "Hoi An": [
+      "Little Riverside Hoi An",
+      "Almanity Hoi An Resort & Spa",
+      "Ann Retreat Resort & Spa",
+      "La Siesta Hoi An Resort & Spa",
+      "Allegro Hoi An",
+      "Anantara Hoi An Resort",
+      "Lantana Riverside Hoi An",
+      "Victoria Hoi An Beach Resort & Spa",
+      "Vinh Hung Riverside Resort"
+    ],
+    "Hue": [
+      "Eldora Hotel Hue",
+      "Silk Path Grand Hue",
+      "Moonlight Hotel Hue",
+      "Saigon Morin Hotel",
+      "Imperial Hotel Hue",
+      "Pilgrimage Village Boutique Resort & Spa",
+      "Hotel La Perle",
+      "Huong Giang Hotel Resort & Spa"
+    ],
+    "Ha Long Bay": [
+      "Orchid Cruise Ha Long",
+      "Paradise Elegance Cruise",
+      "Bhaya Classic Cruise",
+      "Indochina Sails",
+      "Stellar of the Seas",
+      "Heritage Line Cruise",
+      "Peony Cruise",
+      "Alisa Premier Cruise"
+    ],
+    "Ninh Binh": [
+      "Tam Coc Garden Resort",
+      "Emeralda Resort Ninh Binh",
+      "Ninh Binh Hidden Charm Hotel",
+      "Tam Coc La Montagne Resort & Spa",
+      "Mua Caves Ecolodge",
+      "Tam Coc Rice Fields Resort"
+    ],
+    "Sapa": [
+      "Aira Boutique Sapa Hotel & Spa",
+      "Victoria Sapa Resort & Spa",
+      "Silk Path Grand Resort & Spa Sapa",
+      "KK Sapa Hotel",
+      "Sapa Horizon Hotel",
+      "U Sapa Hotel",
+      "Pao's Sapa Leisure Hotel"
+    ],
+    "Can Tho": [
+      "Victoria Can Tho Resort",
+      "Azerai Can Tho",
+      "Muong Thanh Luxury Can Tho",
+      "TTC Hotel Premium Can Tho",
+      "Nesta Hotel Can Tho",
+      "Iris Hotel Can Tho"
+    ],
+    "Phu Quoc": [
+      "Salinda Resort Phu Quoc",
+      "Fusion Resort Phu Quoc",
+      "InterContinental Phu Quoc Long Beach",
+      "Vinpearl Resort & Spa Phu Quoc",
+      "JW Marriott Phu Quoc Emerald Bay",
+      "La Veranda Resort Phu Quoc",
+      "Novotel Phu Quoc Resort",
+      "Dusit Princess Moonrise Beach Resort"
+    ],
+    "Nha Trang": [
+      "InterContinental Nha Trang",
+      "Sheraton Nha Trang Hotel & Spa",
+      "Mia Resort Nha Trang",
+      "Amiana Resort Nha Trang",
+      "Novotel Nha Trang",
+      "Sunrise Nha Trang Beach Hotel & Spa"
+    ],
+    "Da Lat": [
+      "Ana Mandara Villas Dalat Resort & Spa",
+      "Dalat Palace Heritage Hotel",
+      "Terracotta Hotel & Resort Dalat",
+      "Swiss-Belresort Tuyen Lam Dalat",
+      "Du Parc Hotel Dalat",
+      "Ngoc Lan Hotel Dalat"
+    ],
+    "Mui Ne": [
+      "Anantara Mui Ne Resort",
+      "Sailing Club Resort Mui Ne",
+      "Pandanus Resort Mui Ne",
+      "Victoria Phan Thiet Beach Resort & Spa",
+      "The Cliff Resort & Residences",
+      "Sandunes Beach Resort & Spa"
+    ]
+  },
+  "activitiesByCity": {}
+}

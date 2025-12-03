@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VHT Automation – Arrivals &amp; Departures v5</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #f5f5f8;
+      color: #222;
+    }
+    .screen-only { display: block; }
+    .print-only { display: none; }
+    .app-header {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #1363df, #47b5ff);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .app-header small {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    .app-container {
+      display: flex;
+      height: calc(100vh - 52px);
+    }
+    .sidebar {
+      width: 320px;
+      border-right: 1px solid #ddd;
+      background: #fff;
+      padding: 14px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+    .sidebar-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 14px 0 4px;
+      color: #333;
+    }
+    .field {
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+    .field label {
+      margin-bottom: 2px;
+      font-weight: 500;
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+    .field textarea {
+      resize: vertical;
+      min-height: 50px;
+    }
+    .two-cols {
+      display: flex;
+      gap: 8px;
+    }
+    .two-cols .field {
+      flex: 1;
+    }
+    .btn {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1363df, #47b5ff);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: #eeeeee;
+      color: #333;
+      border: 1px solid #cccccc;
+    }
+    .btn-block {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .small-hint {
+      font-size: 11px;
+      color: #777;
+      margin-top: 4px;
+    }
+    .upload-container {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px dashed #ccc;
+    }
+    .upload-container label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .upload-container input {
+      margin-top: 4px;
+      font-size: 11px;
+    }
+    .main-content {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+    }
+    .itinerary-header {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      font-size: 13px;
+    }
+    .itinerary-header h2 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .itinerary-header-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #234;
+      font-size: 11px;
+      margin-right: 4px;
+      margin-top: 2px;
+    }
+    .badge span {
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .day-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 0 0 10px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      border: 1px solid #e4e4e4;
+    }
+    .day-banner {
+      border-radius: 12px 12px 0 0;
+      padding: 10px 14px;
+      background: linear-gradient(120deg, #ff9f1c, #ff5d68);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .day-banner-main {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .day-banner-sub {
+      font-size: 11px;
+      opacity: 0.95;
+    }
+    .day-banner-date {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .day-content {
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+    .day-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 8px 0 4px;
+      color: #333;
+    }
+    .day-hotel-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .star-rating {
+      font-size: 12px;
+      margin-left: 4px;
+      color: #f5b301;
+      white-space: nowrap;
+    }
+    .day-hotel-row select,
+    .day-hotel-row input {
+      font-size: 12px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .day-activity-row {
+      margin-bottom: 8px;
+    }
+    .day-activity-row select {
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      margin-bottom: 4px;
+    }
+    .day-activity-row textarea {
+      width: 100%;
+      min-height: 60px;
+      resize: vertical;
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .transfer-label {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 8px 0 4px;
+      color: #1363df;
+    }
+    .transfer-box {
+      background: #f3f7ff;
+      border-radius: 8px;
+      border: 1px solid #d0e2ff;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+    }
+    .transfer-box textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      resize: vertical;
+      font-size: 12px;
+      padding: 0;
+      outline: none;
+    }
+    details.picture-placeholder {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    details.picture-placeholder summary {
+      cursor: pointer;
+      font-weight: 500;
+    }
+    details.picture-placeholder textarea {
+      width: 100%;
+      min-height: 40px;
+      margin-top: 4px;
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px dashed #bbb;
+      resize: vertical;
+    }
+    .internal-notes {
+      background: #fff7e6;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      border: 1px dashed #ffb347;
+      margin-bottom: 16px;
+    }
+    .internal-notes h3 {
+      margin-top: 0;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .internal-notes textarea {
+      width: 100%;
+      min-height: 60px;
+      border-radius: 8px;
+      border: 1px solid #f0c27b;
+      padding: 6px 8px;
+      font-size: 12px;
+      resize: vertical;
+      background: #fffdf7;
+    }
+    .warning-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 11px;
+    }
+    @media print {
+      .sidebar, .app-header .no-print, .internal-notes.no-print {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      .app-container {
+        display: block;
+        height: auto;
+      }
+      .main-content {
+        padding: 0;
+      }
+      .screen-only {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      details.picture-placeholder {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <div>
+      <div>VHT Automation – Arrivals &amp; Departures v5</div>
+      <small>Arrival/departure times in header + Day 1 &amp; last day transfers.</small>
+    </div>
+    <div class="no-print">
+      <button class="btn btn-secondary" onclick="printItinerary()">Print / Save PDF</button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div class="sidebar">
+      <h2>Traveller Input</h2>
+
+      <div class="field">
+        <label for="groupName">Name of travellers / group</label>
+        <input id="groupName" type="text" placeholder="e.g. Cohen Family – 4 pax" />
+      </div>
+
+      <div class="field">
+        <label for="nationality">Nationality</label>
+        <select id="nationality">
+          <option value="">Select…</option>
+          <option>Israeli</option>
+          <option>French</option>
+          <option>American</option>
+          <option>Canadian</option>
+          <option>European (Mixed)</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="ageGroup">Age group</label>
+        <select id="ageGroup">
+          <option value="">Select…</option>
+          <option>Young adults (18–30)</option>
+          <option>Mixed adults (30–55)</option>
+          <option>Seniors (55+)</option>
+          <option>Family with kids</option>
+          <option>Multi-generation</option>
+        </select>
+      </div>
+
+      <div class="two-cols">
+        <div class="field">
+          <label for="numDays">Number of days</label>
+          <select id="numDays">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7" selected>7</option><option value="8">8</option><option value="9">9</option>
+            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+            <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="area">Area</label>
+          <select id="area">
+            <option value="">Select…</option>
+            <option>North Vietnam</option>
+            <option>Central Vietnam</option>
+            <option>South Vietnam</option>
+            <option>Vietnam – Country-wide</option>
+            <option>Vietnam &amp; Cambodia</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dates & times -->
+      <div class="two-cols">
+        <div class="field">
+          <label for="startDate">Start date</label>
+          <input id="startDate" type="date" />
+          <label for="arrivalTime" style="margin-top:6px;">Arrival time</label>
+          <input id="arrivalTime" type="time" />
+          <div class="small-hint">Or write in Special requests, e.g. "Arrival 14:30".</div>
+        </div>
+
+        <div class="field">
+          <label for="endDate">End date (auto)</label>
+          <input id="endDate" type="date" disabled />
+          <label for="departureTime" style="margin-top:6px;">Departure time</label>
+          <input id="departureTime" type="time" />
+          <div class="small-hint">Or write in Special requests, e.g. "Departure 23:55".</div>
+        </div>
+      </div>
+
+      <div class="two-cols">
+        <div class="field">
+          <label for="startCity">Start city</label>
+          <select id="startCity">
+            <option>Ho Chi Minh City</option>
+            <option>Hanoi</option>
+            <option>Da Nang</option>
+            <option>Hoi An</option>
+            <option>Hue</option>
+            <option>Ha Long Bay</option>
+            <option>Ninh Binh</option>
+            <option>Sapa</option>
+            <option>Can Tho</option>
+            <option>Phu Quoc</option>
+            <option>Nha Trang</option>
+            <option>Da Lat</option>
+            <option>Mui Ne</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="endCity">End city</label>
+          <select id="endCity">
+            <option value="">Same as start</option>
+            <option>Ho Chi Minh City</option>
+            <option>Hanoi</option>
+            <option>Da Nang</option>
+            <option>Hoi An</option>
+            <option>Hue</option>
+            <option>Ha Long Bay</option>
+            <option>Ninh Binh</option>
+            <option>Sapa</option>
+            <option>Can Tho</option>
+            <option>Phu Quoc</option>
+            <option>Nha Trang</option>
+            <option>Da Lat</option>
+            <option>Mui Ne</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="tourType">Type of tour</label>
+        <select id="tourType">
+          <option value="">Select…</option>
+          <option>Private</option>
+          <option>Backpacker</option>
+          <option>Small group</option>
+          <option>Large group</option>
+          <option>Combined (group + private)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="tourLevel">Level</label>
+        <select id="tourLevel">
+          <option value="">Select…</option>
+          <option>Easy</option>
+          <option>Moderate</option>
+          <option>Intensive</option>
+          <option>Adventurous</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="hotelRating">Hotel rating</label>
+        <select id="hotelRating">
+          <option value="">Select…</option>
+          <option>Homestay</option>
+          <option>3★</option>
+          <option>4★</option>
+          <option>5★</option>
+          <option>Luxury / Boutique</option>
+          <option>Mixed (3–4★)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="foodPref">Food preferences</label>
+        <select id="foodPref">
+          <option value="">Select…</option>
+          <option>Everything – standard local &amp; international</option>
+          <option>Vegetarian</option>
+          <option>Vegan</option>
+          <option>Halal</option>
+          <option>Kosher style (no pork/seafood, separate pans)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="specialRequests">Special requests (shown to client)</label>
+        <textarea id="specialRequests" placeholder='e.g. "Arrival 14:30, Departure 23:55", anniversary, mobility, must-see spots…'></textarea>
+      </div>
+
+      <div class="sidebar-section-title">Additional internal info (for Lona only)</div>
+
+      <div class="field">
+        <label for="budgetHint">Budget level (rough)</label>
+        <select id="budgetHint">
+          <option value="">Optional…</option>
+          <option>Budget</option>
+          <option>Mid-range</option>
+          <option>High-end</option>
+          <option>Luxury</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="paceHint">Pace preference comment</label>
+        <input id="paceHint" type="text" placeholder="e.g. late mornings, nightlife, few hotel changes" />
+      </div>
+
+      <button class="btn btn-primary btn-block" id="generateBtn">Generate / Refresh Itinerary</button>
+      <div class="small-hint">
+        Edit each day (city, hotel, transfer, activities) after generation before sending to the client.
+      </div>
+
+      <div class="upload-container">
+        <label for="templateUpload">Upload new itinerary templates (JSON)</label><br />
+        <input id="templateUpload" type="file" accept=".json" />
+        <div class="small-hint">
+          This enriches hotels &amp; activities for each city.
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content" id="itineraryArea"></div>
+  </div>
+
+  <script>
+    const CITY_OPTIONS = [
+      "Ho Chi Minh City",
+      "Hanoi",
+      "Da Nang",
+      "Hoi An",
+      "Hue",
+      "Ha Long Bay",
+      "Ninh Binh",
+      "Sapa",
+      "Can Tho",
+      "Phu Quoc",
+      "Nha Trang",
+      "Da Lat",
+      "Mui Ne"
+    ];
+
+    const HOTEL_OPTIONS = {
+      "Ho Chi Minh City": [
+        "Liberty Central Saigon Riverside",
+        "Au Lac Charner Hotel",
+        "Hotel Nikko Saigon"
+      ],
+      "Hanoi": [
+        "La Siesta Classic Ma May",
+        "Hanoi Pearl Hotel",
+        "Apricot Hotel Hanoi"
+      ],
+      "Da Nang": [
+        "Brilliant Hotel Da Nang",
+        "Novotel Danang Premier Han River",
+        "Sala Da Nang Beach Hotel"
+      ],
+      "Hoi An": [
+        "Little Riverside Hoi An",
+        "Almanity Hoi An Resort & Spa",
+        "Ann Retreat Resort & Spa"
+      ],
+      "Hue": [
+        "Eldora Hotel Hue",
+        "Silk Path Grand Hue",
+        "Moonlight Hotel Hue"
+      ],
+      "Ha Long Bay": [
+        "Orchid Cruise Ha Long",
+        "Paradise Elegance Cruise",
+        "Bhaya Classic Cruise"
+      ],
+      "Ninh Binh": [
+        "Tam Coc Garden Resort",
+        "Emeralda Resort Ninh Binh",
+        "Ninh Binh Hidden Charm Hotel"
+      ],
+      "Sapa": [
+        "Aira Boutique Sapa Hotel & Spa",
+        "Victoria Sapa Resort & Spa",
+        "Silk Path Grand Resort & Spa Sapa"
+      ],
+      "Can Tho": [
+        "Victoria Can Tho Resort",
+        "Azerai Can Tho",
+        "Muong Thanh Luxury Can Tho"
+      ],
+      "Phu Quoc": [
+        "Salinda Resort Phu Quoc",
+        "Fusion Resort Phu Quoc",
+        "InterContinental Phu Quoc Long Beach"
+      ],
+      "Nha Trang": [
+        "InterContinental Nha Trang",
+        "Sheraton Nha Trang Hotel & Spa",
+        "Mia Resort Nha Trang"
+      ],
+      "Da Lat": [
+        "Ana Mandara Villas Dalat Resort & Spa",
+        "Dalat Palace Heritage Hotel",
+        "Terracotta Hotel & Resort Dalat"
+      ],
+      "Mui Ne": [
+        "Anantara Mui Ne Resort",
+        "Sailing Club Resort Mui Ne",
+        "Pandanus Resort Mui Ne"
+      ]
+    };
+
+    const ACTIVITIES = {
+      "Ho Chi Minh City": {
+        morning: [
+          "Guided visit of the War Remnants Museum and the Reunification Palace.",
+          "Walking tour through Dong Khoi Street and the French colonial quarter."
+        ],
+        afternoon: [
+          "Ben Thanh Market & local coffee workshop.",
+          "Cu Chi Tunnels (half-day, may be combined with morning)."
+        ],
+        evening: [
+          "Saigon rooftop bar experience & night street food tour.",
+          "Dinner cruise on the Saigon River with live music."
+        ]
+      },
+      "Hanoi": {
+        morning: [
+          "City tour: Ho Chi Minh complex, One Pillar Pagoda and Tran Quoc Pagoda.",
+          "Cyclo ride in the Old Quarter, including local market visit."
+        ],
+        afternoon: [
+          "Temple of Literature and Ethnology Museum.",
+          "Ethnology Museum and Old Quarter walking tour."
+        ],
+        evening: [
+          "Street food tour around Hoan Kiem Lake.",
+          "Beer corner & local bar experience in the Old Quarter."
+        ]
+      },
+      "Da Nang": {
+        morning: [
+          "Ba Na Hills – Golden Bridge & French Village (early departure).",
+          "Relaxed beach time on My Khe Beach."
+        ],
+        afternoon: [
+          "Marble Mountains & Linh Ung Pagoda.",
+          "Han Market & local coffee break."
+        ],
+        evening: [
+          "Han River cruise to see the bridges at night.",
+          "Free time to explore bars and cafés along the river."
+        ]
+      },
+      "Hoi An": {
+        morning: [
+          "Basket boat tour in the Coconut Forest with local fisherman experience.",
+          "Cooking class & local market visit."
+        ],
+        afternoon: [
+          "Walking tour of Hoi An Ancient Town (UNESCO).",
+          "Free time for tailor fittings and shopping."
+        ],
+        evening: [
+          "Lantern boat ride on the river & Old Town by night.",
+          "Romantic dinner in the Ancient Town."
+        ]
+      },
+      "Hue": {
+        morning: [
+          "Boat trip on the Perfume River to Thien Mu Pagoda.",
+          "Visit the Imperial Citadel (UNESCO)."
+        ],
+        afternoon: [
+          "Visit the Royal Tombs (Khai Dinh or Tu Duc).",
+          "Incense village & conical hat village stop."
+        ],
+        evening: [
+          "Dinner with royal-style Hue cuisine.",
+          "Free evening to explore riverside cafés."
+        ]
+      },
+      "Ha Long Bay": {
+        morning: [
+          "Check in to cruise and start sailing among the limestone karsts.",
+          "Kayaking or bamboo boat ride in a quiet lagoon."
+        ],
+        afternoon: [
+          "Visit a cave or floating village in Ha Long Bay.",
+          "Cooking demonstration on board the cruise."
+        ],
+        evening: [
+          "Sunset on deck with welcome drink.",
+          "Squid fishing or relaxing onboard activities."
+        ]
+      },
+      "Ninh Binh": {
+        morning: [
+          "Boat trip through the caves in Tam Coc or Trang An.",
+          "Cycling through rice fields and local villages."
+        ],
+        afternoon: [
+          "Visit Bich Dong Pagoda or Bai Dinh Pagoda.",
+          "Viewpoint hike at Mua Cave for panorama of Ninh Binh."
+        ],
+        evening: [
+          "Relax at the lodge with countryside views.",
+          "Optional walk or bicycle ride at sunset."
+        ]
+      },
+      "Sapa": {
+        morning: [
+          "Guided trekking through minority villages around Sapa.",
+          "Visit a local market (depending on day)."
+        ],
+        afternoon: [
+          "Continue trekking through rice terraces and valleys.",
+          "Visit a local family for tea and cultural exchange."
+        ],
+        evening: [
+          "Free time in Sapa town for dinner and shopping.",
+          "Relax at the hotel or enjoy a massage after trekking."
+        ]
+      },
+      "Can Tho": {
+        morning: [
+          "Early boat trip to Cai Rang floating market.",
+          "Visit small canals and local fruit gardens."
+        ],
+        afternoon: [
+          "Cycle or walk through villages along the Mekong canals.",
+          "Visit a local rice noodle or rice paper workshop."
+        ],
+        evening: [
+          "Riverside dinner in Can Tho.",
+          "Free evening to explore Ninh Kieu Pier promenade."
+        ]
+      },
+      "Phu Quoc": {
+        morning: [
+          "Relax on the beach or by the pool.",
+          "Optional snorkelling or boat trip to nearby islands."
+        ],
+        afternoon: [
+          "Visit a fish sauce factory or pepper farm.",
+          "Explore Phu Quoc National Park or a local waterfall (seasonal)."
+        ],
+        evening: [
+          "Dinner at the night market in Duong Dong.",
+          "Beachfront drinks at a sunset bar."
+        ]
+      },
+      "Nha Trang": {
+        morning: [
+          "Island-hopping boat trip with snorkelling.",
+          "Relaxed beachfront morning in Nha Trang."
+        ],
+        afternoon: [
+          "Mud bath & spa experience.",
+          "Visit Po Nagar Cham Towers and Long Son Pagoda."
+        ],
+        evening: [
+          "Seafood dinner at a local restaurant.",
+          "Free time to enjoy Nha Trang's nightlife and seafront promenade."
+        ]
+      },
+      "Da Lat": {
+        morning: [
+          "City tour: Bao Dai's Summer Palace, Crazy House or Da Lat Railway Station.",
+          "Visit local flower gardens and Xuan Huong Lake."
+        ],
+        afternoon: [
+          "Visit coffee farm and waterfall in the countryside.",
+          "Cable car to Truc Lam Pagoda (if operating)."
+        ],
+        evening: [
+          "Explore Da Lat night market.",
+          "Relax in a café with local coffee and cool mountain air."
+        ]
+      },
+      "Mui Ne": {
+        morning: [
+          "Sunrise visit to the white sand dunes of Mui Ne.",
+          "Walk along the Fairy Stream (Suoi Tien)."
+        ],
+        afternoon: [
+          "Relax at the resort or on the beach.",
+          "Optional kitesurfing or watersports (seasonal)."
+        ],
+        evening: [
+          "Seafood dinner by the sea.",
+          "Free time to enjoy beach bars and the sound of the ocean."
+        ]
+      }
+    };
+
+    const state = {
+      traveller: {},
+      daysData: []
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function formatDate(date) {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "";
+      const opts = { day: "2-digit", month: "short", year: "numeric" };
+      return d.toLocaleDateString("en-GB", opts);
+    }
+
+    function formatDateTime(dateStr, timeStr) {
+      if (!dateStr) return "";
+      const d = formatDate(dateStr);
+      if (!timeStr) return d;
+      return `${d} ${timeStr}`;
+    }
+
+    function addDays(baseDate, daysToAdd) {
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() + daysToAdd);
+      return d.toISOString().split("T")[0];
+    }
+
+    function autoFillEndDate() {
+      const startDate = $("startDate").value;
+      const numDays = parseInt($("numDays").value, 10) || 1;
+      if (startDate) {
+        $("endDate").value = addDays(startDate, numDays - 1);
+      } else {
+        $("endDate").value = "";
+      }
+    }
+
+    $("startDate").addEventListener("change", autoFillEndDate);
+    $("numDays").addEventListener("change", autoFillEndDate);
+
+    function hotelRatingToStars(rating) {
+      if (!rating) return "";
+      const r = rating.toLowerCase();
+      if (r.includes("homestay")) return "Homestay";
+      if (r.startsWith("3")) return "★★★☆☆";
+      if (r.startsWith("4")) return "★★★★☆";
+      if (r.startsWith("5")) return "★★★★★";
+      if (r.includes("luxury")) return "★★★★★";
+      if (r.includes("mixed")) return "★★★–★★★★";
+      return rating;
+    }
+
+    function parseTimesFromText(text) {
+      const result = { arrival: null, departure: null };
+      if (!text) return result;
+      const lower = text.toLowerCase();
+      const timeRegex = /(\d{1,2})[:\.](\d{2})/g;
+      const matches = [];
+      let m;
+      while ((m = timeRegex.exec(lower)) !== null) {
+        const hh = m[1].padStart(2, "0");
+        const mm = m[2];
+        if (parseInt(hh, 10) < 24 && parseInt(mm, 10) < 60) {
+          matches.push(`${hh}:${mm}`);
+        }
+      }
+      if (matches[0]) result.arrival = matches[0];
+      if (matches[1]) result.departure = matches[1];
+      return result;
+    }
+
+    function collectTravellerData() {
+      let endCity = $("endCity").value || $("startCity").value;
+      const specialRequests = $("specialRequests").value.trim();
+
+      let arrivalTime = $("arrivalTime").value;
+      let departureTime = $("departureTime").value;
+
+      if (!arrivalTime || !departureTime) {
+        const parsed = parseTimesFromText(specialRequests);
+        if (!arrivalTime && parsed.arrival) arrivalTime = parsed.arrival;
+        if (!departureTime && parsed.departure) departureTime = parsed.departure;
+        if (!$("arrivalTime").value && parsed.arrival) $("arrivalTime").value = parsed.arrival;
+        if (!$("departureTime").value && parsed.departure) $("departureTime").value = parsed.departure;
+      }
+
+      state.traveller = {
+        groupName: $("groupName").value.trim(),
+        nationality: $("nationality").value,
+        ageGroup: $("ageGroup").value,
+        numDays: parseInt($("numDays").value, 10) || 1,
+        startDate: $("startDate").value,
+        endDate: $("endDate").value,
+        arrivalTime,
+        departureTime,
+        area: $("area").value,
+        startCity: $("startCity").value,
+        endCity,
+        tourType: $("tourType").value,
+        tourLevel: $("tourLevel").value,
+        hotelRating: $("hotelRating").value,
+        foodPref: $("foodPref").value,
+        specialRequests,
+        budgetHint: $("budgetHint").value,
+        paceHint: $("paceHint").value
+      };
+    }
+
+    function getDefaultCityForDay(dayIndex) {
+      const { startCity, endCity, numDays } = state.traveller;
+      if (numDays <= 1 || !endCity || endCity === startCity) return startCity;
+      if (dayIndex === numDays - 1) return endCity;
+      return startCity;
+    }
+
+    function buildSmartRoute() {
+      const t = state.traveller;
+      const startCity = t.startCity;
+      const endCity = t.endCity;
+      const numDays = t.numDays;
+
+      // If no end city, or same city, or too short trip → no smart routing
+      if (!startCity || !endCity || startCity === endCity || numDays < 4) {
+        return null;
+      }
+
+      let corridor = null;
+
+      // Smart corridor between Ho Chi Minh City and Hanoi via Central Vietnam
+      if (
+        (startCity === "Ho Chi Minh City" && endCity === "Hanoi") ||
+        (startCity === "Hanoi" && endCity === "Ho Chi Minh City")
+      ) {
+        corridor = ["Ho Chi Minh City", "Da Nang", "Hoi An", "Hue", "Hanoi"];
+        // If starting from Hanoi, reverse the corridor
+        if (startCity === "Hanoi") {
+          corridor = corridor.slice().reverse();
+        }
+      }
+
+      // If no corridor rule matched, fall back to default behaviour
+      if (!corridor) return null;
+
+      const pathLen = corridor.length;
+      if (numDays === 1) {
+        return [startCity];
+      }
+
+      // Distribute days along the corridor (start → end, auto-spread middle days)
+      const route = [];
+      for (let i = 0; i < numDays; i++) {
+        const tPos = (i / (numDays - 1)) * (pathLen - 1);
+        let idx = Math.round(tPos);
+        if (idx < 0) idx = 0;
+        if (idx > pathLen - 1) idx = pathLen - 1;
+        route.push(corridor[idx]);
+      }
+      return route;
+    }
+
+    function getActivitiesFor(city, dayPart) {
+      const cityData = ACTIVITIES[city];
+      if (!cityData || !cityData[dayPart] || cityData[dayPart].length === 0) {
+        if (dayPart === "morning") return [`Sightseeing & easy introduction to ${city}.`];
+        if (dayPart === "afternoon") return [`Guided highlights tour in ${city}.`];
+        return [`Relaxed evening in ${city} with free time.`];
+      }
+      return cityData[dayPart];
+    }
+
+    function getHotelsFor(city) { return HOTEL_OPTIONS[city] || []; }
+
+    function buildTransferText(prevCity, currentCity) {
+      if (!prevCity || !currentCity || prevCity === currentCity) return "";
+      return `Private car transfer between ${prevCity} and ${currentCity}. Exact timing and vehicle to be confirmed according to flights and program.`;
+    }
+
+    function generateDaysData() {
+      const t = state.traveller;
+      state.daysData = [];
+
+      // Try to build a smart route first (e.g. HCMC → Da Nang → Hoi An → Hue → Hanoi)
+      const smartRoute = buildSmartRoute();
+
+      for (let i = 0; i < t.numDays; i++) {
+        const city = smartRoute ? smartRoute[i] : getDefaultCityForDay(i);
+        const date = t.startDate ? addDays(t.startDate, i) : null;
+
+        const morningOptions = getActivitiesFor(city, "morning");
+        const afternoonOptions = getActivitiesFor(city, "afternoon");
+        const eveningOptions = getActivitiesFor(city, "evening");
+
+        const prevCity = i === 0 ? null : state.daysData[i - 1]?.city;
+        let transfer = buildTransferText(prevCity, city);
+
+        // add airport pick-up / drop-off automatically on first/last day
+        if (i === 0 && t.arrivalTime) {
+          transfer += (transfer ? " " : "") + `Airport pick-up according to arrival at ${t.arrivalTime}.`;
+        }
+        if (i === t.numDays - 1 && t.departureTime) {
+          transfer += (transfer ? " " : "") + `Airport drop-off according to departure at ${t.departureTime}.`;
+        }
+
+        state.daysData.push({
+          dayIndex: i,
+          label: `Day ${i + 1}`,
+          city,
+          date,
+          hotelCity: city,
+          hotelName: getHotelsFor(city)[0] || "",
+          transfer,
+          morning: morningOptions[0] || "",
+          afternoon: afternoonOptions[0] || "",
+          evening: eveningOptions[0] || "",
+          morningOptions,
+          afternoonOptions,
+          eveningOptions,
+          pictureNotes: ""
+        });
+      }
+    }
+
+    function renderItinerary() {
+      const t = state.traveller;
+      const cont = $("itineraryArea");
+
+      if (!t || !t.numDays) {
+        cont.innerHTML = "<p>Please fill the form on the left and click <b>Generate / Refresh Itinerary</b>.</p>";
+        return;
+      }
+
+      let headerHtml = `
+        <div class="itinerary-header">
+          <h2>${t.groupName || "Unnamed group"} – ${t.numDays} days in Vietnam</h2>
+          <div class="itinerary-header-row">
+            ${
+              t.startDate
+                ? `<div class="badge"><span>Dates</span>${formatDateTime(t.startDate, t.arrivalTime)}${
+                    t.endDate ? " → " + formatDateTime(t.endDate, t.departureTime) : ""
+                  }</div>`
+                : ""
+            }
+            ${t.area ? `<div class="badge"><span>Area</span>${t.area}</div>` : ""}
+            ${t.nationality ? `<div class="badge"><span>Nationality</span>${t.nationality}</div>` : ""}
+            ${t.ageGroup ? `<div class="badge"><span>Age</span>${t.ageGroup}</div>` : ""}
+            ${t.tourType ? `<div class="badge"><span>Type</span>${t.tourType}</div>` : ""}
+            ${t.tourLevel ? `<div class="badge"><span>Level</span>${t.tourLevel}</div>` : ""}
+            ${t.hotelRating ? `<div class="badge"><span>Hotels</span>${t.hotelRating}</div>` : ""}
+            ${t.foodPref ? `<div class="badge"><span>Food</span>${t.foodPref}</div>` : ""}
+            ${t.startCity ? `<div class="badge"><span>Start</span>${t.startCity}</div>` : ""}
+            ${t.endCity ? `<div class="badge"><span>End</span>${t.endCity}</div>` : ""}
+            ${t.budgetHint ? `<div class="badge"><span>Budget</span>${t.budgetHint}</div>` : ""}
+          </div>
+          ${t.specialRequests ? `<div style="margin-top:6px;font-size:12px;"><b>Special requests:</b> ${t.specialRequests}</div>` : ""}
+          ${t.paceHint ? `<div style="margin-top:4px;font-size:12px;"><b>Pace note:</b> ${t.paceHint}</div>` : ""}
+        </div>
+      `;
+
+      function citySelect(dayIndex, currentCity) {
+        return `
+          <select data-day="${dayIndex}" data-field="city"
+                  style="font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid #ccc;">
+            ${CITY_OPTIONS.map(c => `<option value="${c}" ${c === currentCity ? "selected" : ""}>${c}</option>`).join("")}
+          </select>
+        `;
+      }
+
+      let daysHtml = state.daysData.map(d => {
+        const hotelOptions = getHotelsFor(d.hotelCity);
+        const starLabel = hotelRatingToStars(state.traveller.hotelRating);
+        const hotelText = d.hotelName || "To be advised";
+        const hotelSelect = `
+          <div class="day-hotel-row">
+            <span style="font-size:12px;font-weight:500;">Hotel:</span>
+            <div class="screen-only">
+              <select data-day="${d.dayIndex}" data-field="hotelName">
+                <option value="">Select hotel…</option>
+                ${hotelOptions.map(h => `<option value="${h}" ${h === d.hotelName ? "selected" : ""}>${h}</option>`).join("")}
+              </select>
+              ${starLabel ? `<span class="star-rating">${starLabel}</span>` : ""}
+            </div>
+            <div class="print-only">
+              <span style="font-size:12px;">${hotelText}${starLabel ? " – " + starLabel : ""}</span>
+            </div>
+          </div>
+        `;
+
+        function activityBlock(day, partLabel, fieldName, optionsArr) {
+          const selectOptions = optionsArr.map(o => `<option value="${o}">${o}</option>`).join("");
+          const text = day[fieldName] || "";
+          return `
+            <div class="day-activity-row">
+              <div class="day-section-title">${partLabel}</div>
+              <div class="screen-only">
+                <select data-day="${day.dayIndex}" data-part="${fieldName}" class="alt-activity-select">
+                  <option value="">Choose alternative activity…</option>
+                  ${selectOptions}
+                </select>
+                <div class="small-hint" style="margin:2px 0 4px;">
+                  You can also type your own activity below – it will be saved and printed.
+                </div>
+                <textarea data-day="${day.dayIndex}" data-field="${fieldName}">${text}</textarea>
+              </div>
+              <div class="print-only">
+                <p style="margin:2px 0 0;font-size:12px;">${text || "Details to be defined."}</p>
+              </div>
+            </div>
+          `;
+        }
+
+        const transferText = d.transfer || "";
+        const transferBlock = `
+          <div class="transfer-label">Transfer</div>
+          <div class="transfer-box">
+            <div class="screen-only">
+              <textarea data-day="${d.dayIndex}" data-field="transfer"
+                placeholder="Transfer between cities (flight / car / train)…">${transferText}</textarea>
+            </div>
+            <div class="print-only">
+              <p style="margin:0;font-size:12px;">${transferText || "Transfer details to be confirmed."}</p>
+            </div>
+          </div>
+        `;
+
+        return `
+          <div class="day-card">
+            <div class="day-banner">
+              <div>
+                <div class="day-banner-main">${d.label} – ${d.city}</div>
+                <div class="day-banner-sub">
+                  <span class="screen-only">Location (editable): ${citySelect(d.dayIndex, d.city)}</span>
+                  <span class="print-only">Location: ${d.city}</span>
+                </div>
+              </div>
+              <div class="day-banner-date">
+                ${d.date ? formatDate(d.date) : ""}
+              </div>
+            </div>
+            <div class="day-content">
+              ${hotelSelect}
+
+              ${transferBlock}
+
+              ${activityBlock(d, "Morning", "morning", d.morningOptions || [])}
+              ${activityBlock(d, "Afternoon", "afternoon", d.afternoonOptions || [])}
+              ${activityBlock(d, "Evening", "evening", d.eveningOptions || [])}
+
+              <details class="picture-placeholder">
+                <summary>Pictures / visual notes for this day</summary>
+                <textarea data-day="${d.dayIndex}" data-field="pictureNotes"
+                  placeholder="Paste image links or internal notes for which photos to add.">${d.pictureNotes || ""}</textarea>
+              </details>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const internalNotesHtml = `
+        <div class="internal-notes no-print">
+          <h3>Internal warnings &amp; suggestions for Lona (not printed for client)</h3>
+          <ul class="warning-list">
+            <li>Check realistic transfer times and adjust activities if a day is too full.</li>
+            <li>Verify hotel availability &amp; category according to budget and age group.</li>
+            <li>For seniors / mobility issues: reduce stairs &amp; temples, add more café/rest time.</li>
+            <li>For nightlife-oriented guests: emphasise evening bars &amp; street food, keep mornings lighter.</li>
+            <li>Double-check special food requirements with restaurants (especially halal / kosher style).</li>
+          </ul>
+          <textarea id="lonaInternalNotes"
+            placeholder="Your own notes, reminders, and checks for this specific group..."></textarea>
+        </div>
+      `;
+
+      cont.innerHTML = headerHtml + internalNotesHtml + daysHtml;
+    }
+
+    function updateDayForCity(dayIndex, newCity) {
+      const day = state.daysData[dayIndex];
+      if (!day) return;
+      const t = state.traveller;
+
+      day.city = newCity;
+      day.hotelCity = newCity;
+
+      const hotels = getHotelsFor(newCity);
+      day.hotelName = hotels[0] || "";
+
+      const morningOptions = getActivitiesFor(newCity, "morning");
+      const afternoonOptions = getActivitiesFor(newCity, "afternoon");
+      const eveningOptions = getActivitiesFor(newCity, "evening");
+
+      day.morningOptions = morningOptions;
+      day.afternoonOptions = afternoonOptions;
+      day.eveningOptions = eveningOptions;
+
+      const prevCity = dayIndex === 0 ? null : state.daysData[dayIndex - 1].city;
+      day.transfer = buildTransferText(prevCity, newCity);
+
+      const tDays = state.traveller.numDays;
+      if (dayIndex === 0 && t.arrivalTime) {
+        day.transfer += (day.transfer ? " " : "") + `Airport pick-up according to arrival at ${t.arrivalTime}.`;
+      }
+      if (dayIndex === tDays - 1 && t.departureTime) {
+        day.transfer += (day.transfer ? " " : "") + `Airport drop-off according to departure at ${t.departureTime}.`;
+      }
+
+      day.morning = morningOptions[0] || "";
+      day.afternoon = afternoonOptions[0] || "";
+      day.evening = eveningOptions[0] || "";
+
+      const nextDay = state.daysData[dayIndex + 1];
+      if (nextDay) {
+        nextDay.transfer = buildTransferText(newCity, nextDay.city);
+        if (dayIndex + 1 === tDays - 1 && t.departureTime) {
+          nextDay.transfer += (nextDay.transfer ? " " : "") + `Airport drop-off according to departure at ${t.departureTime}.`;
+        }
+      }
+    }
+
+    $("generateBtn").addEventListener("click", () => {
+      collectTravellerData();
+      autoFillEndDate();
+      generateDaysData();
+      renderItinerary();
+    });
+
+    $("itineraryArea").addEventListener("input", (e) => {
+      const target = e.target;
+      const dayIndex = parseInt(target.getAttribute("data-day"), 10);
+      if (isNaN(dayIndex)) return;
+
+      const field = target.getAttribute("data-field");
+      if (!field) return;
+
+      const day = state.daysData[dayIndex];
+      if (!day) return;
+
+      day[field] = target.value;
+    });
+
+    $("itineraryArea").addEventListener("change", (e) => {
+      const target = e.target;
+      const dayIndex = parseInt(target.getAttribute("data-day"), 10);
+      if (isNaN(dayIndex)) return;
+
+      const field = target.getAttribute("data-field");
+      const part = target.getAttribute("data-part");
+      const day = state.daysData[dayIndex];
+      if (!day) return;
+
+      if (field === "hotelName") {
+        day.hotelName = target.value;
+        renderItinerary();
+        return;
+      }
+
+      if (field === "city") {
+        const newCity = target.value;
+        updateDayForCity(dayIndex, newCity);
+        renderItinerary();
+        return;
+      }
+
+      if (part && target.classList.contains("alt-activity-select")) {
+        if (target.value) {
+          day[part] = target.value;
+          renderItinerary();
+        }
+      }
+    });
+
+    $("templateUpload").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.hotelsByCity) {
+            Object.keys(data.hotelsByCity).forEach(city => {
+              if (!HOTEL_OPTIONS[city]) HOTEL_OPTIONS[city] = [];
+              HOTEL_OPTIONS[city].push(...data.hotelsByCity[city]);
+            });
+          }
+          if (data.activitiesByCity) {
+            Object.keys(data.activitiesByCity).forEach(city => {
+              if (!ACTIVITIES[city]) ACTIVITIES[city] = { morning: [], afternoon: [], evening: [] };
+              const parts = data.activitiesByCity[city];
+              ["morning", "afternoon", "evening"].forEach(part => {
+                if (parts[part]) {
+                  if (!ACTIVITIES[city][part]) ACTIVITIES[city][part] = [];
+                  ACTIVITIES[city][part].push(...parts[part]);
+                }
+              });
+            });
+          }
+          alert("Templates uploaded successfully. Generate the itinerary again to see new options.");
+        } catch (err) {
+          console.error(err);
+          alert("Failed to read JSON file. Please check the format.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function printItinerary() {
+      if (!state.daysData || !state.daysData.length) {
+        alert("Please generate an itinerary first.");
+        return;
+      }
+      window.print();
+    }
+
+    renderItinerary();
+  </script>
+</body>
+</html>
