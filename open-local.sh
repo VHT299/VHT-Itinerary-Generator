@@ -7,3 +7,6 @@ echo "✅ Browser should open to http://localhost:8000/index.html"
 echo ""
 echo "💡 Tip: After making changes to index.html, refresh the browser (Cmd+R) to see updates!"
 
+
+
+
