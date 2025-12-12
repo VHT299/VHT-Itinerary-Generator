@@ -246,6 +246,10 @@
       margin-top: 6px;
       color: #4b5563;
     }
+    #numDays {
+      border: 2px solid red !important;
+      background-color: #ffebee !important;
+    }
     .field {
       margin-bottom: 8px;
       display: flex;
@@ -982,6 +986,9 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Libraries for DOCX export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
   <div class="app-header">
@@ -991,6 +998,9 @@
     <div class="top-toolbar no-print">
       <button id="printItineraryBtn" class="btn btn-primary">
         Print / Save as PDF
+      </button>
+      <button id="exportDocxBtn" class="btn btn-primary" style="margin-left: 10px;" title="Generate an itinerary first, then click to save as DOCX">
+        Save as DOCX
       </button>
   </div>
   </div>
@@ -2268,6 +2278,37 @@
           "Days 17–18 – Free days in Saigon for shopping, massages and departure."
         ]
       },
+      19: {
+        id: "vn-19-signature",
+        name: "Vietnam in 19 Days – Vietnam & Inland Valleys",
+        destinations: "Hanoi, Ninh Binh, Ha Long Bay, Da Nang, Hoi An, Ba Na Hills, Hue, Ho Chi Minh City, Mekong Delta",
+        startsIn: "Hanoi, Vietnam",
+        endsIn: "Ho Chi Minh City, Vietnam",
+        tourType: "Private tour",
+        travelStyle: "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+        intro: "Adds extra countryside and rural experiences. This 19-day itinerary offers a comprehensive journey through Vietnam, from the vibrant Ho Chi Minh City in the South, through the cultural heart of the Central region, to the historical capital of Hanoi and the majestic landscapes of the North.",
+        days: [
+          "Day 1 – Ho Chi Minh City arrival.",
+          "Day 2 – Full-day Ho Chi Minh City tour.",
+          "Day 3 – Mekong Delta full-day excursion.",
+          "Day 4 – Cu Chi Tunnels half-day tour.",
+          "Day 5 – Fly Ho Chi Minh → Da Nang, transfer to Hoi An.",
+          "Day 6 – Hoi An Ancient Town walking tour (half-day).",
+          "Day 7 – Tra Que Vegetable Village & Coconut Palm Forest.",
+          "Day 8 – Free day in Hoi An.",
+          "Day 9 – Ba Na Hills full day → overnight Da Nang.",
+          "Day 10 – Da Nang city full-day tour.",
+          "Day 11 – Da Nang → Hue full-day city tour, overnight in Hue.",
+          "Day 12 – Hue → Fly to Hanoi.",
+          "Day 13 – Hanoi city full-day tour.",
+          "Day 14 – Hoa Lu – Trang An – Mua Cave full-day tour.",
+          "Day 15 – Extra day in Ninh Binh for slower exploration and village walks.",
+          "Day 16 – Hanoi → Sapa by limousine bus.",
+          "Day 17 – Sapa trekking: Y Linh Ho – Lao Chai – Ta Van.",
+          "Day 18 – Fansipan Peak → Hanoi by limousine bus.",
+          "Day 19 – Hanoi → Ha Long Bay, overnight cruise."
+        ]
+      },
       20: {
         id: "vn-20-signature",
         name: "Vietnam in 20 Days – Vietnam & Inland Valleys",
@@ -2403,6 +2444,77 @@
           "Day 24 – Ha Noi – Ha Long Bay overnight cruise – Ha Noi departure."
         ]
       },
+      23: {
+        id: "vn-23-panorama",
+        name: "Vietnam Panorama – 23 Days",
+        destinations: "Ho Chi Minh City, Mekong Delta, Nha Trang, Da Lat, Da Nang, Hoi An, Ba Na Hills, Hue, Hanoi, Ninh Binh, Sapa, Ha Long Bay",
+        startsIn: "Ho Chi Minh City, Vietnam",
+        endsIn: "Hanoi, Vietnam",
+        tourType: "Private tour",
+        travelStyle: "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+        intro: "Adds one more day on top of the 22-day panorama. This 23-day itinerary offers a deep dive into Vietnam's culture, history, and natural beauty with a relaxed pace.",
+        days: [
+          "Day 1 – Ho Chi Minh City arrival.",
+          "Day 2 – Ho Chi Minh City & Cu Chi Tunnels.",
+          "Day 3 – Ho Chi Minh – Mekong Delta full day.",
+          "Day 4 – Ho Chi Minh – Cu Chi Tunnels half day.",
+          "Day 5 – Ho Chi Minh – Fly to Nha Trang.",
+          "Day 6 – Nha Trang city & mud spa tour.",
+          "Day 7 – Nha Trang free day.",
+          "Day 8 – Nha Trang – Da Lat by private car.",
+          "Day 9 – Da Lat city tour.",
+          "Day 10 – Da Lat free day.",
+          "Day 11 – Da Lat – Fly to Da Nang – Hoi An.",
+          "Day 12 – Hoi An walking tour & Tra Que / basket boat.",
+          "Day 13 – Hoi An free day (tailors, beach or spa).",
+          "Day 14 – Hoi An – Ba Na Hills full day – Da Nang.",
+          "Day 15 – Da Nang city full-day tour.",
+          "Day 16 – Da Nang – Hue City full-day tour.",
+          "Day 17 – Hue – Fly to Ha Noi.",
+          "Day 18 – Ha Noi city full day.",
+          "Day 19 – Ha Noi – Hoa Lu – Trang An – Mua Cave.",
+          "Day 20 – Ha Noi – Sa Pa by limousine bus.",
+          "Day 21 – Sa Pa trekking – Y Linh Ho – Lao Chai – Ta Van.",
+          "Day 22 – Sa Pa – Fansipan Peak – Ha Noi.",
+          "Day 23 – Ha Noi free day (cafés, museums and shopping)."
+        ]
+      },
+      24: {
+        id: "vn-24-deep",
+        name: "Vietnam in 24 Days – Deep Discovery",
+        destinations: "Ho Chi Minh City, Mekong Delta, Nha Trang, Da Lat, Da Nang, Hoi An, Ba Na Hills, Hue, Hanoi, Ninh Binh, Sapa, Ha Long Bay",
+        startsIn: "Ho Chi Minh City, Vietnam",
+        endsIn: "Hanoi, Vietnam",
+        tourType: "Private tour",
+        travelStyle: "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+        intro: "Adds more slow days on top of the 22-day panorama. This 24-day itinerary offers a deep dive into Vietnam's culture, history, and natural beauty with a relaxed pace.",
+        days: [
+          "Day 1 – Ho Chi Minh City arrival.",
+          "Day 2 – Ho Chi Minh City & Cu Chi Tunnels.",
+          "Day 3 – Ho Chi Minh – Mekong Delta full day.",
+          "Day 4 – Ho Chi Minh – Cu Chi Tunnels half day.",
+          "Day 5 – Ho Chi Minh – Fly to Nha Trang.",
+          "Day 6 – Nha Trang city & mud spa tour.",
+          "Day 7 – Nha Trang free day.",
+          "Day 8 – Nha Trang – Da Lat by private car.",
+          "Day 9 – Da Lat city tour.",
+          "Day 10 – Da Lat free day.",
+          "Day 11 – Da Lat – Fly to Da Nang – Hoi An.",
+          "Day 12 – Hoi An walking tour & Tra Que / basket boat.",
+          "Day 13 – Hoi An free day (tailors, beach or spa).",
+          "Day 14 – Hoi An – Ba Na Hills full day – Da Nang.",
+          "Day 15 – Da Nang city full-day tour.",
+          "Day 16 – Da Nang – Hue City full-day tour.",
+          "Day 17 – Hue – Fly to Ha Noi.",
+          "Day 18 – Ha Noi city full day.",
+          "Day 19 – Ha Noi – Hoa Lu – Trang An – Mua Cave.",
+          "Day 20 – Ha Noi – Sa Pa by limousine bus.",
+          "Day 21 – Sa Pa trekking – Y Linh Ho – Lao Chai – Ta Van.",
+          "Day 22 – Sa Pa – Fansipan Peak – Ha Noi.",
+          "Day 23 – Ha Noi free day (cafés, museums and shopping).",
+          "Day 24 – Ha Noi – Ha Long Bay overnight cruise – Ha Noi departure."
+        ]
+      },
       26: {
         id: "vn-26-explorer",
         name: "Vietnam in 26 Days – Mountains, Coast & Countryside",
@@ -2439,6 +2551,82 @@
           "Day 24 – Dong Van – Meo Vac (group tour) – Ha Noi.",
           "Day 25 – Ha Noi – Ha Long Bay overnight cruise.",
           "Day 26 – Ha Long Bay – Ha Noi departure."
+        ]
+      },
+      25: {
+        id: "vn-25-explorer",
+        name: "Vietnam in 25 Days – Mountains, Coast & Countryside",
+        destinations: "Ho Chi Minh City, Mekong Delta, Nha Trang, Da Lat, Da Nang, Hoi An, Ba Na Hills, Hue, Hanoi, Ninh Binh, Sapa, Mai Chau, Ha Long Bay",
+        startsIn: "Ho Chi Minh City, Vietnam",
+        endsIn: "Hanoi, Vietnam",
+        tourType: "Private tour",
+        travelStyle: "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+        intro: "Very slow version including mountains and valleys. This 25-day itinerary offers an in-depth exploration of Vietnam's diverse regions, from the vibrant South to the majestic North, with extra time for relaxation and cultural immersion.",
+        days: [
+          "Day 1 – Ho Chi Minh City arrival.",
+          "Day 2 – Ho Chi Minh City full day.",
+          "Day 3 – Ho Chi Minh – Mekong Delta full day.",
+          "Day 4 – Ho Chi Minh – Cu Chi Tunnels half day.",
+          "Day 5 – Ho Chi Minh – Fly to Nha Trang.",
+          "Day 6 – Nha Trang city & mud spa tour.",
+          "Day 7 – Nha Trang free day.",
+          "Day 8 – Nha Trang – Da Lat by private car.",
+          "Day 9 – Da Lat city tour.",
+          "Day 10 – Da Lat free day (extra relaxed exploration).",
+          "Day 11 – Da Lat – Fly to Da Nang – Hoi An.",
+          "Day 12 – Hoi An walking tour & Tra Que / basket boat.",
+          "Day 13 – Hoi An free day.",
+          "Day 14 – Hoi An – Ba Na Hills full day – Da Nang.",
+          "Day 15 – Da Nang city full-day tour.",
+          "Day 16 – Da Nang – Hue City full-day tour.",
+          "Day 17 – Hue free day (extra relaxed exploration).",
+          "Day 18 – Hue – Fly to Ha Noi.",
+          "Day 19 – Ha Noi city full day.",
+          "Day 20 – Ha Noi – Hoa Lu – Trang An – Mua Cave.",
+          "Day 21 – Ninh Binh – Cuc Phuong National Park – Ha Noi (additional village walks).",
+          "Day 22 – Ha Noi – Ha Giang City (group tour).",
+          "Day 23 – Ha Giang City – Quan Ba – Yen Minh – Dong Van Town (group tour).",
+          "Day 24 – Dong Van – Meo Vac (group tour) – Ha Noi.",
+          "Day 25 – Ha Noi – Ha Long Bay overnight cruise."
+        ]
+      },
+      26: {
+        id: "vn-27-explorer",
+        name: "Vietnam in 27 Days – Extended Mountains, Coast & Countryside",
+        destinations: "Ho Chi Minh City, Mekong Delta, Can Tho, Nha Trang, Da Lat, Da Nang, Hoi An, Ba Na Hills, Hue, Hanoi, Ninh Binh, Sapa, Mai Chau, Ha Long Bay",
+        startsIn: "Ho Chi Minh City, Vietnam",
+        endsIn: "Hanoi, Vietnam",
+        tourType: "Private tour",
+        travelStyle: "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+        intro: "Adds one extra day on top of the 26-day version for a slower finish in Hanoi.",
+        days: [
+          "Day 1 – Ho Chi Minh (Saigon) arrival.",
+          "Day 2 – Ho Chi Minh – Cai Be – Floating Market – An Binh Island – Vinh Long – Can Tho.",
+          "Day 3 – Cai Rang Floating Market – local Mekong life – return to Ho Chi Minh City.",
+          "Day 4 – Fly from Ho Chi Minh City to Nha Trang – beach city arrival.",
+          "Day 5 – Nha Trang city highlights & mud spa experience.",
+          "Day 6 – Free day in Nha Trang (beach & relaxation).",
+          "Day 7 – Scenic private-car transfer Nha Trang → Da Lat.",
+          "Day 8 – Da Lat city tour (Bao Dai Palace, cable car, pagodas, waterfalls, flower park).",
+          "Day 9 – Free day in romantic Da Lat.",
+          "Day 10 – Fly Da Lat → Da Nang, transfer to Hoi An.",
+          "Day 11 – Hoi An walking tour, Tra Que Village & basket boat in Coconut Forest.",
+          "Day 12 – Full day Ba Na Hills & Golden Bridge from Hoi An.",
+          "Day 13 – Half-day My Son Sanctuary, afternoon free in Hoi An.",
+          "Day 14 – Free day in Hoi An (beach / lantern town).",
+          "Day 15 – Hoi An → Marble Mountain → Hai Van Pass → Hue.",
+          "Day 16 – Full-day Hue city tour (tombs, pagodas, Perfume River, market).",
+          "Day 17 – Fly Hue → Hanoi, free evening in the capital.",
+          "Day 18 – Hanoi city afternoon tour by Jeep with street food & local life.",
+          "Day 19 – Full-day Bai Dinh – Trang An boat trip – Mua Cave viewpoint.",
+          "Day 20 – Quang Phu Cau incense village (craft & photography).",
+          "Day 21 – Hanoi → Sapa by limousine bus, free time in Sapa.",
+          "Day 22 – Sapa trekking: Cat Cat – Y Linh Ho – Lao Chai – Ta Van.",
+          "Day 23 – Sapa waterfalls & viewpoints: O Quy Ho, Silver Waterfall, Love Waterfall, Heaven Gate.",
+          "Day 24 – Fansipan cable car excursion, afternoon limousine bus back to Hanoi.",
+          "Day 25 – Free day in Hanoi (shopping / optional activities).",
+          "Day 26 – Hanoi → Mai Chau valley, biking through minority villages.",
+          "Day 27 – Morning walk in Mai Chau villages, afternoon return to Hanoi."
         ]
       },
       28: {
@@ -2479,6 +2667,47 @@
           "Day 26 – Hanoi → Mai Chau valley, biking through minority villages.",
           "Day 27 – Morning walk in Mai Chau villages, afternoon return to Hanoi.",
           "Day 28 – Hanoi → Ha Long Bay cruise, caves & sunset, return to Hanoi for departure."
+        ]
+      },
+      29: {
+        id: "vn-29-extended",
+        name: "Vietnam in 29 Days – Extended Full Month",
+        destinations: "Ho Chi Minh City, Mekong Delta, Can Tho, Nha Trang, Da Lat, Da Nang, Hoi An, Ba Na Hills, Hue, Hanoi, Ninh Binh, Sapa, Mai Chau, Ha Long Bay",
+        startsIn: "Ho Chi Minh City, Vietnam",
+        endsIn: "Hanoi, Vietnam",
+        tourType: "Private tour",
+        travelStyle: "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+        intro: "This incredible 29-day private tour unveils the diverse beauty and rich culture of Vietnam, from the bustling streets of Ho Chi Minh City to the serene landscapes of Ha Long Bay. You'll journey through vibrant floating markets, ancient temples, charming historical towns like Hoi An and Hue, and the stunning mountain scenery of Sapa and Mai Chau.",
+        days: [
+          "Day 1 – Ho Chi Minh (Saigon) arrival",
+          "Day 2 – Ho Chi Minh – Cai Be – Floating Market – An Binh Island – Vinh Long – Can Tho",
+          "Day 3 – Cai Rang Floating Market – local Mekong life – return to Ho Chi Minh City",
+          "Day 4 – Fly from Ho Chi Minh City to Nha Trang – beach city arrival",
+          "Day 5 – Nha Trang city highlights & mud spa experience",
+          "Day 6 – Free day in Nha Trang (beach & relaxation)",
+          "Day 7 – Scenic private-car transfer Nha Trang → Da Lat",
+          "Day 8 – Da Lat city tour (Bao Dai Palace, cable car, pagodas, waterfalls, flower park)",
+          "Day 9 – Free day in romantic Da Lat",
+          "Day 10 – Fly Da Lat → Da Nang, transfer to Hoi An",
+          "Day 11 – Hoi An walking tour, Tra Que Village & basket boat in Coconut Forest",
+          "Day 12 – Full day Ba Na Hills & Golden Bridge from Hoi An",
+          "Day 13 – Half-day My Son Sanctuary, afternoon free in Hoi An",
+          "Day 14 – Free day in Hoi An (beach / lantern town)",
+          "Day 15 – Hoi An → Marble Mountain → Hai Van Pass → Hue",
+          "Day 16 – Full-day Hue city tour (tombs, pagodas, Perfume River, market)",
+          "Day 17 – Fly Hue → Hanoi, free evening in the capital",
+          "Day 18 – Hanoi city afternoon tour by Jeep with street food & local life",
+          "Day 19 – Full-day Bai Dinh – Trang An boat trip – Mua Cave viewpoint",
+          "Day 20 – Quang Phu Cau incense village (craft & photography)",
+          "Day 21 – Hanoi → Sapa by limousine bus, free time in Sapa",
+          "Day 22 – Sapa trekking: Cat Cat – Y Linh Ho – Lao Chai – Ta Van",
+          "Day 23 – Sapa waterfalls & viewpoints: O Quy Ho, Silver Waterfall, Love Waterfall, Heaven Gate",
+          "Day 24 – Fansipan cable car excursion, afternoon limousine bus back to Hanoi",
+          "Day 25 – Free day in Hanoi (shopping / optional activities)",
+          "Day 26 – Hanoi → Mai Chau valley, biking through minority villages",
+          "Day 27 – Morning walk in Mai Chau villages, afternoon return to Hanoi",
+          "Day 28 – Hanoi → Ha Long Bay (La Regina Classic Cruise), caves & sunset",
+          "Day 29 – Ha Long Bay floating village, brunch on board, return to Hanoi"
         ]
       },
       30: {
@@ -2750,7 +2979,8 @@
           "Day 20 – Siem Reap: Floating village and Tonle Sap Lake boat trip.",
           "Day 21 – Siem Reap: Angkor Wat sunrise, Angkor Thom, Ta Prohm Temple, and Phnom Bakheng sunset.",
           "Day 22 – Siem Reap: Banteay Srei, Preah Khan, and additional temple exploration.",
-          "Day 23 – Siem Reap: Free time and departure transfer."
+          "Day 23 – Siem Reap: Additional temple exploration and local market visit.",
+          "Day 24 – Siem Reap: Free time and departure transfer."
         ]
       },
       "25-mc": {
@@ -3129,6 +3359,31 @@
           { day: 18, title: "Hanoi Departure", details: "Enjoy a leisurely breakfast at your hotel. Depending on your flight schedule, you'll have free time for last-minute souvenir shopping or a final stroll. Your private driver will transfer you to Noi Bai International Airport (HAN) for your onward departure." }
         ]
       },
+      19: {
+        id: "vn-19-signature-detailed",
+        name: "Vietnam in 19 Days – Vietnam & Inland Valleys (Detailed)",
+        days: [
+          { day: 1, title: "Ho Chi Minh City Arrival & Leisure", details: "Arrive at Tan Son Nhat International Airport (SGN), where your private driver will meet you and transfer you to your hotel in Ho Chi Minh City. After check-in, enjoy a relaxed evening, perhaps with a stroll around the vibrant city center or a quiet dinner." },
+          { day: 2, title: "Saigon City Highlights Tour", details: "Explore the iconic landmarks of Ho Chi Minh City on a full-day tour. Visit the Reunification Palace, Notre Dame Cathedral, and the historic Central Post Office. Gain insights into the Vietnam War at the War Remnants Museum, and experience the lively atmosphere of Ben Thanh Market. Lunch will be at a local restaurant." },
+          { day: 3, title: "Mekong Delta Full-Day Excursion", details: "Journey to the lush Mekong Delta for a full-day tour. Enjoy a boat trip on the Mekong River, visit local markets, and explore traditional villages. Experience a sampan ride through narrow canals and savor a local lunch amidst the tranquil scenery before returning to Ho Chi Minh City." },
+          { day: 4, title: "Cu Chi Tunnels Half-Day Excursion", details: "In the morning, embark on a half-day trip to the Cu Chi Tunnels, an intricate underground network used by Viet Cong soldiers during the war. Learn about their ingenious living conditions and guerrilla tactics. You'll have the afternoon free back in Ho Chi Minh City for personal exploration or relaxation." },
+          { day: 5, title: "Ho Chi Minh City → Da Nang Flight & Transfer to Hoi An", details: "After breakfast, transfer to Tan Son Nhat Airport for your flight to Da Nang. Upon arrival, your private driver will transfer you directly to your hotel in Hoi An. In the evening, take a leisurely walk through the enchanting lantern-lit streets of Hoi An Ancient Town." },
+          { day: 6, title: "Hoi An Ancient Town Walking Tour", details: "Discover the charm of Hoi An Ancient Town, a UNESCO World Heritage site, on a guided walking tour. Visit the iconic Japanese Covered Bridge, the Phuc Kien Assembly Hall, and a traditional merchant's house. Explore the bustling local market and learn about Hoi An's rich history as a trading port. Enjoy a local lunch." },
+          { day: 7, title: "Hoi An Countryside Experience or Beach Day", details: "Today, choose your preferred activity: either a delightful countryside experience including a visit to Tra Que Vegetable Village for a hands-on farming lesson and a fun basket boat ride in the Coconut Forest, or a relaxing day at An Bang Beach. Lunch will be arranged according to your choice. Enjoy the evening at leisure in Hoi An." },
+          { day: 8, title: "Hoi An Free Day", details: "Enjoy a full free day in Hoi An for shopping, tailoring, cycling to the beach, or simply relaxing by the river. Overnight in Hoi An." },
+          { day: 9, title: "Hoi An → Ba Na Hills Full-Day & Da Nang", details: "Depart for Ba Na Hills: cable car ride, Golden Bridge, Le Jardin d'Amour gardens, Linh Ung Pagoda, Fantasy Park and French Village, with buffet lunch. Transfer to Da Nang for overnight." },
+          { day: 10, title: "Da Nang City Highlights Tour", details: "Explore the iconic landmarks of Da Nang on a full-day city tour. Visit Marble Mountain, Son Tra Peninsula (Lady Buddha), and the Cham Museum. Experience the vibrant atmosphere of Han Market and see the Dragon Bridge. Lunch at a local restaurant." },
+          { day: 11, title: "Da Nang → Hue City Full-Day Tour", details: "Travel to Hue and explore the Ancient Citadel, take a boat on the Perfume River to Thien Mu Pagoda, visit Tu Duc Tomb and browse Dong Ba Market before checking in to your hotel in Hue." },
+          { day: 12, title: "Hue → Hanoi Flight", details: "Breakfast, private transfer to Hue airport, short flight to Hanoi, pick-up and transfer to hotel. Free time to experience the Old Quarter in the evening." },
+          { day: 13, title: "Hanoi City Highlights Tour", details: "Discover Hanoi's rich history and culture on a full-day city tour. Visit the Ho Chi Minh Complex (Mausoleum exterior, Presidential Palace, Stilt House), One Pillar Pagoda, and the Temple of Literature. Explore the vibrant Old Quarter and enjoy a traditional water puppet show. Lunch at a local restaurant." },
+          { day: 14, title: "Ninh Binh Full-Day Excursion", details: "Take a full-day trip to Ninh Binh, often called 'Ha Long Bay on land.' Visit Hoa Lu, Vietnam's ancient capital, and take a scenic boat trip through the stunning karst landscapes of Trang An or Tam Coc. Climb to the Mua Cave viewpoint for panoramic views of the rice fields and rivers. Lunch at a local restaurant. Return to Hanoi in the late afternoon." },
+          { day: 15, title: "Extra Day in Ninh Binh", details: "Extra day in Ninh Binh for slower exploration and village walks. Visit additional temples, enjoy countryside cycling, or explore local craft villages. Overnight in Ninh Binh or return to Hanoi." },
+          { day: 16, title: "Hanoi → Sapa by Limousine Bus", details: "Early pick-up by limousine bus for a comfortable 5–6 hour journey to Sapa. Check in to your hotel and enjoy free time around Sapa town. Overnight in Sapa." },
+          { day: 17, title: "Sapa Trekking – Y Linh Ho, Lao Chai & Ta Van", details: "Guided trek through terraced valleys and minority villages: pass a waterfall and hydro station, visit Y Linh Ho, Lao Chai and Ta Van villages with a simple local lunch en route, then drive back to Sapa." },
+          { day: 18, title: "Fansipan Peak & Return to Hanoi", details: "Morning cable car ride to Fansipan, the Roof of Indochina, with time to explore temples and viewpoints. Return to Sapa for lunch, then afternoon limousine bus back to Hanoi, arriving in the evening. Overnight in Hanoi." },
+          { day: 19, title: "Hanoi → Ha Long Bay Overnight Cruise", details: "After breakfast, transfer to Ha Long Bay. Upon arrival, embark on an overnight cruise. Enjoy a welcome drink, lunch, and explore a stunning cave. Participate in kayaking or swimming activities, enjoy a sunset party, and a cooking class before dinner onboard. Overnight on the cruise." }
+        ]
+      },
       20: {
         id: "vn-20-signature-detailed",
         name: "Vietnam in 20 Days – Vietnam & Inland Valleys (Detailed)",
@@ -3240,6 +3495,65 @@
           { day: 24, title: "Ha Noi – Ha Long Bay Overnight Cruise – Ha Noi Departure", details: "Shuttle to Ha Long Bay, board cruise, welcome drinks and lunch, visit cave, kayaking/swimming, sunset party, cooking class, dinner onboard. Next morning: Tai Chi, breakfast, brunch, disembark and return to Hanoi. Transfer to Noi Bai Airport for departure." }
         ]
       },
+      23: {
+        id: "vn-23-panorama-detailed",
+        name: "Vietnam Panorama – 23 Days (Detailed)",
+        days: [
+          { day: 1, title: "Ho Chi Minh City Arrival & Leisure", details: "Arrive at Tan Son Nhat International Airport (SGN), where your private driver will meet you and transfer you to your hotel in Ho Chi Minh City. After check-in, enjoy a relaxed evening, perhaps with a stroll around the vibrant city center or a quiet dinner." },
+          { day: 2, title: "Saigon City Highlights Tour", details: "Explore the iconic landmarks of Ho Chi Minh City on a full-day tour. Visit the Reunification Palace, Notre Dame Cathedral, and the historic Central Post Office. Gain insights into the Vietnam War at the War Remnants Museum, and experience the lively atmosphere of Ben Thanh Market. Lunch will be at a local restaurant." },
+          { day: 3, title: "Mekong Delta Full-Day Excursion", details: "Journey to the lush Mekong Delta for a full-day tour. Enjoy a boat trip on the Mekong River, visit local markets, and explore traditional villages. Experience a sampan ride through narrow canals and savor a local lunch amidst the tranquil scenery before returning to Ho Chi Minh City." },
+          { day: 4, title: "Cu Chi Tunnels Half-Day Excursion", details: "In the morning, embark on a half-day trip to the Cu Chi Tunnels, an intricate underground network used by Viet Cong soldiers during the war. Learn about their ingenious living conditions and guerrilla tactics. You'll have the afternoon free back in Ho Chi Minh City for personal exploration or relaxation." },
+          { day: 5, title: "Ho Chi Minh – Fly to Nha Trang", details: "Breakfast, transfer to airport, flight to Nha Trang, pick up & hotel check-in, free time." },
+          { day: 6, title: "Nha Trang City & Mud Spa Tour", details: "Visit Oceanographic Institute, pagoda, cathedral, Cham Po Nagar, mud bath & hot springs, local lunch." },
+          { day: 7, title: "Nha Trang Free Day", details: "Beach time, optional island trips, spa or leisure day at your own pace." },
+          { day: 8, title: "Nha Trang – Da Lat by Private Car", details: "Late morning departure, scenic mountain road to Da Lat, check-in & free evening." },
+          { day: 9, title: "Da Lat City Tour", details: "Bao Dai Summer Palace, cable car, Truc Lam Zen Monastery, Datanla Waterfall, pagodas, flower park." },
+          { day: 10, title: "Da Lat Free Day", details: "Free day for cafes, markets, lakes, or optional activities." },
+          { day: 11, title: "Da Lat – Fly to Da Nang – Hoi An", details: "Transfer to Da Lat airport, fly to Da Nang, private transfer to Hoi An hotel." },
+          { day: 12, title: "Hoi An Walking Tour & Tra Que / Basket Boat", details: "Walking tour of Hoi An Old Town, Tra Que Vegetable Village lunch & activities, basket boat in Coconut Forest." },
+          { day: 13, title: "Hoi An Free Day (Tailors, Beach or Spa)", details: "Full free day in Hoi An for shopping, tailoring, beach relaxation, spa treatments, or optional tours." },
+          { day: 14, title: "Hoi An – Ba Na Hills Full Day – Da Nang", details: "Cable car to Ba Na Hills, Golden Bridge, Le Jardin D'Amour, Linh Ung Pagoda, Fantasy Park, buffet lunch. Transfer to Da Nang for overnight." },
+          { day: 15, title: "Da Nang City Full-Day Tour", details: "Marble Mountain (pagodas, caves, viewpoints), Son Tra Peninsula with Lady Buddha, Cham Museum, Dragon Bridge, Han Market, lunch." },
+          { day: 16, title: "Da Nang – Hue City Full-Day Tour", details: "Travel to Hue and explore the Ancient Citadel, take a boat on the Perfume River to Thien Mu Pagoda, visit Tu Duc Tomb and browse Dong Ba Market before checking in to your hotel in Hue." },
+          { day: 17, title: "Hue – Fly to Ha Noi", details: "Breakfast, transfer to Hue airport, fly to Hanoi, private transfer & check-in." },
+          { day: 18, title: "Ha Noi City Full Day", details: "Ho Chi Minh Complex (Mausoleum exterior, Presidential Palace, Stilt House), One Pillar Pagoda, Temple of Literature, museum (Ethnology or Women's), Train Street, Old Quarter and Hoan Kiem Lake." },
+          { day: 19, title: "Ha Noi – Hoa Lu – Trang An – Mua Cave", details: "Full-day excursion to Ninh Binh: visit Hoa Lu ancient capital and temples, boat trip through Trang An's caves and karsts, climb Mua Cave viewpoint for panoramic rice field and river views. Return to Hanoi." },
+          { day: 20, title: "Ha Noi – Sa Pa by Limousine Bus", details: "Early pick-up by limousine bus for a comfortable 5–6 hour journey to Sapa. Check in to your hotel and enjoy free time around Sapa town. Overnight in Sapa." },
+          { day: 21, title: "Sa Pa Trekking – Y Linh Ho – Lao Chai – Ta Van", details: "Guided trek through terraced valleys and minority villages: pass a waterfall and hydro station, visit Y Linh Ho, Lao Chai and Ta Van villages with a simple local lunch en route, then drive back to Sapa." },
+          { day: 22, title: "Sa Pa – Fansipan Peak – Ha Noi", details: "Morning cable car ride to Fansipan, the Roof of Indochina, with time to explore temples and viewpoints. Return to Sapa for lunch, then afternoon limousine bus back to Hanoi. Overnight in Hanoi." },
+          { day: 23, title: "Ha Noi Free Day (Cafés, Museums and Shopping)", details: "Full free day in Hanoi for cafés, museums, shopping, or optional tours. Perfect for rest and personal exploration." }
+        ]
+      },
+      24: {
+        id: "vn-24-deep-detailed",
+        name: "Vietnam in 24 Days – Deep Discovery (Detailed)",
+        days: [
+          { day: 1, title: "Ho Chi Minh City Arrival & Leisure", details: "Arrive at Tan Son Nhat International Airport (SGN), where your private driver will meet you and transfer you to your hotel in Ho Chi Minh City. After check-in, enjoy a relaxed evening, perhaps with a stroll around the vibrant city center or a quiet dinner." },
+          { day: 2, title: "Saigon City Highlights Tour", details: "Explore the iconic landmarks of Ho Chi Minh City on a full-day tour. Visit the Reunification Palace, Notre Dame Cathedral, and the historic Central Post Office. Gain insights into the Vietnam War at the War Remnants Museum, and experience the lively atmosphere of Ben Thanh Market. Lunch will be at a local restaurant." },
+          { day: 3, title: "Mekong Delta Full-Day Excursion", details: "Journey to the lush Mekong Delta for a full-day tour. Enjoy a boat trip on the Mekong River, visit local markets, and explore traditional villages. Experience a sampan ride through narrow canals and savor a local lunch amidst the tranquil scenery before returning to Ho Chi Minh City." },
+          { day: 4, title: "Cu Chi Tunnels Half-Day Excursion", details: "In the morning, embark on a half-day trip to the Cu Chi Tunnels, an intricate underground network used by Viet Cong soldiers during the war. Learn about their ingenious living conditions and guerrilla tactics. You'll have the afternoon free back in Ho Chi Minh City for personal exploration or relaxation." },
+          { day: 5, title: "Ho Chi Minh – Fly to Nha Trang", details: "Breakfast, transfer to airport, flight to Nha Trang, pick up & hotel check-in, free time." },
+          { day: 6, title: "Nha Trang City & Mud Spa Tour", details: "Visit Oceanographic Institute, pagoda, cathedral, Cham Po Nagar, mud bath & hot springs, local lunch." },
+          { day: 7, title: "Nha Trang Free Day", details: "Beach time, optional island trips, spa or leisure day at your own pace." },
+          { day: 8, title: "Nha Trang – Da Lat by Private Car", details: "Late morning departure, scenic mountain road to Da Lat, check-in & free evening." },
+          { day: 9, title: "Da Lat City Tour", details: "Bao Dai Summer Palace, cable car, Truc Lam Zen Monastery, Datanla Waterfall, pagodas, flower park." },
+          { day: 10, title: "Da Lat Free Day", details: "Free day for cafes, markets, lakes, or optional activities." },
+          { day: 11, title: "Da Lat – Fly to Da Nang – Hoi An", details: "Transfer to Da Lat airport, fly to Da Nang, private transfer to Hoi An hotel." },
+          { day: 12, title: "Hoi An Walking Tour & Tra Que / Basket Boat", details: "Walking tour of Hoi An Old Town, Tra Que Vegetable Village lunch & activities, basket boat in Coconut Forest." },
+          { day: 13, title: "Hoi An Free Day (Tailors, Beach or Spa)", details: "Full free day in Hoi An for shopping, tailoring, beach relaxation, spa treatments, or optional tours." },
+          { day: 14, title: "Hoi An – Ba Na Hills Full Day – Da Nang", details: "Cable car to Ba Na Hills, Golden Bridge, Le Jardin D'Amour, Linh Ung Pagoda, Fantasy Park, buffet lunch. Transfer to Da Nang for overnight." },
+          { day: 15, title: "Da Nang City Full-Day Tour", details: "Marble Mountain (pagodas, caves, viewpoints), Son Tra Peninsula with Lady Buddha, Cham Museum, Dragon Bridge, Han Market, lunch." },
+          { day: 16, title: "Da Nang – Hue City Full-Day Tour", details: "Travel to Hue and explore the Ancient Citadel, take a boat on the Perfume River to Thien Mu Pagoda, visit Tu Duc Tomb and browse Dong Ba Market before checking in to your hotel in Hue." },
+          { day: 17, title: "Hue – Fly to Ha Noi", details: "Breakfast, transfer to Hue airport, fly to Hanoi, private transfer & check-in." },
+          { day: 18, title: "Ha Noi City Full Day", details: "Ho Chi Minh Complex (Mausoleum exterior, Presidential Palace, Stilt House), One Pillar Pagoda, Temple of Literature, museum (Ethnology or Women's), Train Street, Old Quarter and Hoan Kiem Lake." },
+          { day: 19, title: "Ha Noi – Hoa Lu – Trang An – Mua Cave", details: "Full-day excursion to Ninh Binh: visit Hoa Lu ancient capital and temples, boat trip through Trang An's caves and karsts, climb Mua Cave viewpoint for panoramic rice field and river views. Return to Hanoi." },
+          { day: 20, title: "Ha Noi – Sa Pa by Limousine Bus", details: "Early pick-up by limousine bus for a comfortable 5–6 hour journey to Sapa. Check in to your hotel and enjoy free time around Sapa town. Overnight in Sapa." },
+          { day: 21, title: "Sa Pa Trekking – Y Linh Ho – Lao Chai – Ta Van", details: "Guided trek through terraced valleys and minority villages: pass a waterfall and hydro station, visit Y Linh Ho, Lao Chai and Ta Van villages with a simple local lunch en route, then drive back to Sapa." },
+          { day: 22, title: "Sa Pa – Fansipan Peak – Ha Noi", details: "Morning cable car ride to Fansipan, the Roof of Indochina, with time to explore temples and viewpoints. Return to Sapa for lunch, then afternoon limousine bus back to Hanoi. Overnight in Hanoi." },
+          { day: 23, title: "Ha Noi Free Day (Cafés, Museums and Shopping)", details: "Full free day in Hanoi for cafés, museums, shopping, or optional tours. Perfect for rest and personal exploration." },
+          { day: 24, title: "Ha Noi – Ha Long Bay Overnight Cruise – Ha Noi Departure", details: "Shuttle to Ha Long Bay, board cruise, welcome drinks and lunch, visit cave, kayaking/swimming, sunset party, cooking class, dinner onboard. Next morning: Tai Chi, breakfast, brunch, disembark and return to Hanoi. Transfer to Noi Bai Airport for departure." }
+        ]
+      },
       26: {
         id: "vn-26-explorer-detailed",
         name: "Vietnam in 26 Days – Mountains, Coast & Countryside (Detailed)",
@@ -3272,7 +3586,38 @@
           { day: 26, title: "Ha Long Bay – Ha Noi Departure", details: "Morning Tai Chi, breakfast, visit floating village or another cave, brunch on board. Disembark and transfer back to Hanoi. Transfer to Noi Bai Airport for departure." }
         ]
       },
-      28: {
+      25: {
+        id: "vn-25-explorer-detailed",
+        name: "Vietnam in 25 Days – Mountains, Coast & Countryside (Detailed)",
+        days: [
+          { day: 1, title: "Ho Chi Minh City Arrival & Leisure", details: "Arrive at Tan Son Nhat International Airport (SGN), where your private driver will meet you and transfer you to your hotel in Ho Chi Minh City. After check-in, enjoy a relaxed evening, perhaps with a stroll around the vibrant city center or a quiet dinner." },
+          { day: 2, title: "Saigon City Highlights Tour", details: "Explore the iconic landmarks of Ho Chi Minh City on a full-day tour. Visit the Reunification Palace, Notre Dame Cathedral, and the historic Central Post Office. Gain insights into the Vietnam War at the War Remnants Museum, and experience the lively atmosphere of Ben Thanh Market. Lunch will be at a local restaurant." },
+          { day: 3, title: "Mekong Delta Full-Day Excursion", details: "Journey to the lush Mekong Delta for a full-day tour. Enjoy a boat trip on the Mekong River, visit local markets, and explore traditional villages. Experience a sampan ride through narrow canals and savor a local lunch amidst the tranquil scenery before returning to Ho Chi Minh City." },
+          { day: 4, title: "Cu Chi Tunnels Half-Day Excursion", details: "In the morning, embark on a half-day trip to the Cu Chi Tunnels, an intricate underground network used by Viet Cong soldiers during the war. Learn about their ingenious living conditions and guerrilla tactics. You'll have the afternoon free back in Ho Chi Minh City for personal exploration or relaxation." },
+          { day: 5, title: "Ho Chi Minh – Fly to Nha Trang", details: "Breakfast, transfer to airport, flight to Nha Trang, pick up & hotel check-in, free time." },
+          { day: 6, title: "Nha Trang City & Mud Spa Tour", details: "Visit Oceanographic Institute, pagoda, cathedral, Cham Po Nagar, mud bath & hot springs, local lunch." },
+          { day: 7, title: "Nha Trang Free Day", details: "Beach time, optional island trips, spa or leisure day at your own pace." },
+          { day: 8, title: "Nha Trang – Da Lat by Private Car", details: "Late morning departure, scenic mountain road to Da Lat, check-in & free evening." },
+          { day: 9, title: "Da Lat City Tour", details: "Bao Dai Summer Palace, cable car, Truc Lam Zen Monastery, Datanla Waterfall, pagodas, flower park." },
+          { day: 10, title: "Da Lat Free Day (Extra Relaxed Exploration)", details: "Extra free day in Da Lat for cafes, markets, lakes, optional activities, or simply enjoying the cool mountain air at a relaxed pace." },
+          { day: 11, title: "Da Lat – Fly to Da Nang – Hoi An", details: "Transfer to Da Lat airport, fly to Da Nang, private transfer to Hoi An hotel." },
+          { day: 12, title: "Hoi An Walking Tour & Tra Que / Basket Boat", details: "Walking tour of Hoi An Old Town, Tra Que Vegetable Village lunch & activities, basket boat in Coconut Forest." },
+          { day: 13, title: "Hoi An Free Day", details: "Full free day in Hoi An for shopping, tailoring, beach, or optional tours." },
+          { day: 14, title: "Hoi An – Ba Na Hills Full Day – Da Nang", details: "Cable car to Ba Na Hills, Golden Bridge, Le Jardin D'Amour, Linh Ung Pagoda, Fantasy Park, buffet lunch. Transfer to Da Nang for overnight." },
+          { day: 15, title: "Da Nang City Full-Day Tour", details: "Marble Mountain (pagodas, caves, viewpoints), Son Tra Peninsula with Lady Buddha, Cham Museum, Dragon Bridge, Han Market, lunch." },
+          { day: 16, title: "Da Nang – Hue City Full-Day Tour", details: "Travel to Hue and explore the Ancient Citadel, take a boat on the Perfume River to Thien Mu Pagoda, visit Tu Duc Tomb and browse Dong Ba Market before checking in to your hotel in Hue." },
+          { day: 17, title: "Hue Free Day (Extra Relaxed Exploration)", details: "Extra free day in Hue for more relaxed exploration: visit additional tombs, enjoy Perfume River activities, explore local markets, or simply relax." },
+          { day: 18, title: "Hue – Fly to Ha Noi", details: "Breakfast, transfer to Hue airport, fly to Hanoi, private transfer & check-in." },
+          { day: 19, title: "Ha Noi City Full Day", details: "Ho Chi Minh Complex (Mausoleum exterior, Presidential Palace, Stilt House), One Pillar Pagoda, Temple of Literature, museum (Ethnology or Women's), Train Street, Old Quarter and Hoan Kiem Lake." },
+          { day: 20, title: "Ha Noi – Hoa Lu – Trang An – Mua Cave", details: "Full-day excursion to Ninh Binh: visit Hoa Lu ancient capital and temples, boat trip through Trang An's caves and karsts, climb Mua Cave viewpoint for panoramic rice field and river views. Return to Hanoi." },
+          { day: 21, title: "Ninh Binh – Cuc Phuong National Park – Ha Noi (Additional Village Walks)", details: "Drive to Cuc Phuong National Park, explore the ancient forest, visit the Endangered Primate Rescue Center, enjoy nature trails and additional village walks. Return to Hanoi in the late afternoon." },
+          { day: 22, title: "Ha Noi – Ha Giang City (Group Tour)", details: "Early morning departure for Ha Giang. Scenic drive through mountain passes. Arrive in Ha Giang City, check in to hotel. Free evening to explore the town." },
+          { day: 23, title: "Ha Giang City – Quan Ba – Yen Minh – Dong Van Town (Group Tour)", details: "Continue the Ha Giang loop: visit Quan Ba Heaven's Gate, Yen Minh town, and drive to Dong Van. Visit Dong Van Old Quarter and enjoy mountain scenery. Overnight in Dong Van." },
+          { day: 24, title: "Dong Van – Meo Vac (Group Tour) – Ha Noi", details: "Drive through Ma Pi Leng Pass, one of Vietnam's most spectacular mountain passes. Visit Meo Vac town and enjoy stunning views. Return journey to Hanoi, arriving in the evening." },
+          { day: 25, title: "Ha Noi – Ha Long Bay Overnight Cruise", details: "Shuttle to Ha Long Bay, board cruise, welcome drinks and lunch, visit cave, kayaking/swimming, sunset party, cooking class, dinner onboard. Overnight on cruise." }
+        ]
+      },
+      26: {
         id: "vn-28-month-detailed",
         name: "Vietnam in 28 Days – Almost a Full Month (Detailed)",
         days: [
@@ -3306,7 +3651,40 @@
           { day: 28, title: "Hanoi – Ha Long Bay Cruise & Return to Hanoi, Departure", details: "Shuttle to Ha Long, board La Regina Classic Cruise, visit cave, sunset, cooking class & dinner on board. Next morning: Taichi, visit floating village, brunch, disembark & transfer back to Hanoi. Transfer to Noi Bai Airport for departure." }
         ]
       },
-      30: {
+      27: {
+        id: "vn-27-explorer-detailed",
+        name: "Vietnam in 27 Days – Extended Mountains, Coast & Countryside (Detailed)",
+        days: [
+          { day: 1, title: "Ho Chi Minh (Saigon) Arrival", details: "Arrival at Tan Son Nhat Airport, meet & greet, private transfer to central hotel, rest & free time." },
+          { day: 2, title: "Ho Chi Minh – Cai Be – Floating Market – An Binh Island – Vinh Long – Can Tho", details: "Full-day boat program in Cai Be & An Binh Island, traditional crafts, rowboat canals, fruit tasting. Continue to Can Tho for overnight." },
+          { day: 3, title: "Can Tho – Cai Rang Floating Market – Ho Chi Minh City", details: "Morning visit to Cai Rang floating market, breakfast on boat, local life experience, return to Ho Chi Minh City." },
+          { day: 4, title: "Ho Chi Minh – Flight to Nha Trang", details: "Breakfast, transfer to airport, flight to Nha Trang, pick up & hotel check-in, free time." },
+          { day: 5, title: "Nha Trang City & Mud Spa", details: "Oceanographic Institute, pagoda, cathedral, Cham Po Nagar, mud bath & hot springs, local lunch." },
+          { day: 6, title: "Nha Trang Free Day", details: "Beach time, optional island trips, spa or leisure day at your own pace." },
+          { day: 7, title: "Nha Trang – Da Lat by Private Car", details: "Late morning departure, scenic mountain road to Da Lat, check-in & free evening." },
+          { day: 8, title: "Da Lat City Tour", details: "Bao Dai Summer Palace, cable car, Truc Lam Zen Monastery, Datanla Waterfall, pagodas, flower park." },
+          { day: 9, title: "Da Lat Free Day", details: "Free day for cafes, markets, lakes, or optional activities." },
+          { day: 10, title: "Da Lat – Flight to Da Nang – Hoi An", details: "Transfer to Da Lat airport, fly to Da Nang, private transfer to Hoi An hotel." },
+          { day: 11, title: "Hoi An Ancient Town – Tra Que & Basket Boat", details: "Walking tour of Hoi An Old Town, Tra Que Vegetable Village lunch & activities, basket boat in Coconut Forest." },
+          { day: 12, title: "Ba Na Hills Day Trip", details: "Cable car to Ba Na Hills, Golden Bridge, Le Jardin D'Amour, Linh Ung Pagoda, Fantasy Park, buffet lunch." },
+          { day: 13, title: "My Son Sanctuary Half Day", details: "Morning visit to My Son Hindu temples, Cham dance show, return to Hoi An, afternoon free." },
+          { day: 14, title: "Hoi An Free Day", details: "Relax on the beach, tailor visits, lantern streets, or optional tours." },
+          { day: 15, title: "Hoi An – Marble Mountain – Hai Van Pass – Hue", details: "Drive via Marble Mountain and Hai Van Pass to Hue, lunch en route, check-in, free time." },
+          { day: 16, title: "Hue City Tour", details: "Imperial tombs, Perfume River boat to Thien Mu Pagoda, Tu Duc Tomb, Dong Ba Market, lunch in town." },
+          { day: 17, title: "Hue – Flight to Hanoi", details: "Breakfast, transfer to Hue airport, fly to Hanoi, private transfer & check-in." },
+          { day: 18, title: "Hanoi City Afternoon Tour by Jeep", details: "Free morning. Afternoon Jeep tour: Old Quarter, Train Street, French Quarter, Ho Chi Minh area, West Lake, street food & egg coffee." },
+          { day: 19, title: "Bai Dinh – Trang An – Mua Cave", details: "Full-day trip to Ninh Binh: Bai Dinh Pagoda, Trang An boat caves, climb Mua Cave viewpoint." },
+          { day: 20, title: "Quang Phu Cau Incense Village", details: "Half/day or full-day visit to incense-making village, photography & workshop, lunch at local restaurant." },
+          { day: 21, title: "Hanoi – Sapa by Limousine Bus", details: "Comfortable transfer to Sapa, check-in, free time to explore Sapa town." },
+          { day: 22, title: "Sapa Trek – Cat Cat – Y Linh Ho – Lao Chai – Ta Van", details: "Guided trekking through minority villages & rice terraces, lunch en route, car back to Sapa." },
+          { day: 23, title: "Sapa Waterfalls & Passes – O Quy Ho, Silver & Love Waterfalls", details: "Scenic drive through Hoang Lien National Park, visit waterfalls & viewpoints, optional orchard stop." },
+          { day: 24, title: "Fansipan Half Day – Return to Hanoi", details: "Cable car to Fansipan summit, temples & views, then limousine bus back to Hanoi." },
+          { day: 25, title: "Hanoi Free Day", details: "Full free day in Hanoi for shopping, cafes, museums, or optional tours." },
+          { day: 26, title: "Hanoi – Mai Chau", details: "Drive to Mai Chau valley, lunch, afternoon cycling through minority villages, evening cultural show & local rice wine." },
+          { day: 27, title: "Mai Chau – Hanoi", details: "Morning village walk, lunch at ecolodge, afternoon transfer back to Hanoi." }
+        ]
+      },
+      28: {
         id: "vn-30-full-month-detailed",
         name: "Private Vietnam 30 Days 29 Nights – Vietnam Full Month (Detailed)",
         days: [
@@ -3342,7 +3720,42 @@
           { day: 30, title: "Departure from Hanoi", details: "Free time until private airport transfer for your international departure." }
         ]
       },
-      "18-mc": {
+      29: {
+        id: "vn-29-extended-detailed",
+        name: "Vietnam in 29 Days – Extended Full Month (Detailed)",
+        days: [
+          { day: 1, title: "Ho Chi Minh (Saigon) Arrival", details: "Arrival at Tan Son Nhat Airport, meet & greet, private transfer to central hotel, rest & free time." },
+          { day: 2, title: "Ho Chi Minh – Cai Be Floating Market – An Binh Island – Vinh Long – Can Tho", details: "Full-day boat program in Cai Be & An Binh Island, traditional crafts, rowboat canals, fruit tasting. Continue to Can Tho for overnight." },
+          { day: 3, title: "Can Tho – Cai Rang Floating Market – Ho Chi Minh City", details: "Morning visit to Cai Rang floating market, local lunch, transfer back to Ho Chi Minh City." },
+          { day: 4, title: "Ho Chi Minh – Flight to Nha Trang", details: "Breakfast, transfer to airport, flight to Nha Trang, pick up & hotel check-in, free time." },
+          { day: 5, title: "Nha Trang City & Mud Spa", details: "Oceanographic Institute, pagoda, cathedral, Cham Po Nagar, mud bath & hot springs, local lunch." },
+          { day: 6, title: "Nha Trang Free Day", details: "Beach time, optional island trips, spa or leisure day at your own pace." },
+          { day: 7, title: "Nha Trang – Da Lat by Private Car", details: "Late morning departure, scenic mountain road to Da Lat, check-in & free evening." },
+          { day: 8, title: "Da Lat City Tour", details: "Bao Dai Summer Palace, cable car, Truc Lam Zen Monastery, Datanla Waterfall, pagodas, flower park." },
+          { day: 9, title: "Da Lat Free Day", details: "Free day for cafes, markets, lakes, or optional activities." },
+          { day: 10, title: "Da Lat – Flight to Da Nang – Hoi An", details: "Transfer to Da Lat airport, fly to Da Nang, private transfer to Hoi An hotel." },
+          { day: 11, title: "Hoi An Ancient Town – Tra Que & Basket Boat", details: "Walking tour of Hoi An Old Town, Tra Que Vegetable Village lunch & activities, basket boat in Coconut Forest." },
+          { day: 12, title: "Ba Na Hills Day Trip", details: "Cable car to Ba Na Hills, Golden Bridge, Le Jardin D'Amour, Linh Ung Pagoda, Fantasy Park, buffet lunch." },
+          { day: 13, title: "My Son Sanctuary Half Day", details: "Morning visit to My Son Hindu temples, Cham dance show, return to Hoi An, afternoon free." },
+          { day: 14, title: "Hoi An Free Day", details: "Relax on the beach, tailor visits, lantern streets, or optional tours." },
+          { day: 15, title: "Hoi An – Marble Mountain – Hai Van Pass – Hue", details: "Drive via Marble Mountain and Hai Van Pass to Hue, lunch en route, check-in, free time." },
+          { day: 16, title: "Hue City Tour", details: "Imperial tombs, Perfume River boat to Thien Mu Pagoda, Tu Duc Tomb, Dong Ba Market, lunch in town." },
+          { day: 17, title: "Hue – Flight to Hanoi", details: "Breakfast, transfer to Hue airport, fly to Hanoi, private transfer & check-in." },
+          { day: 18, title: "Hanoi City Afternoon Tour by Jeep", details: "Free morning. Afternoon Jeep tour: Old Quarter, Train Street, French Quarter, Ho Chi Minh area, West Lake, street food & egg coffee." },
+          { day: 19, title: "Bai Dinh – Trang An – Mua Cave", details: "Full-day trip to Ninh Binh: Bai Dinh Pagoda, Trang An boat caves, climb Mua Cave viewpoint." },
+          { day: 20, title: "Quang Phu Cau Incense Village", details: "Half/day or full-day visit to incense-making village, photography & workshop, lunch at local restaurant." },
+          { day: 21, title: "Hanoi – Sapa by Limousine Bus", details: "Comfortable transfer to Sapa, check-in, free time to explore Sapa town." },
+          { day: 22, title: "Sapa Trek – Cat Cat – Y Linh Ho – Lao Chai – Ta Van", details: "Guided trekking through minority villages & rice terraces, lunch en route, car back to Sapa." },
+          { day: 23, title: "Sapa Waterfalls & Passes – O Quy Ho, Silver & Love Waterfalls", details: "Scenic drive through Hoang Lien National Park, visit waterfalls & viewpoints, optional orchard stop." },
+          { day: 24, title: "Fansipan Half Day – Return to Hanoi", details: "Cable car to Fansipan summit, temples & views, then limousine bus back to Hanoi." },
+          { day: 25, title: "Hanoi Free Day", details: "Full free day in Hanoi for shopping, cafes, museums, or optional tours." },
+          { day: 26, title: "Hanoi – Mai Chau", details: "Drive to Mai Chau valley, lunch, afternoon cycling through minority villages, evening cultural show & local rice wine." },
+          { day: 27, title: "Mai Chau – Hanoi", details: "Morning village walk, lunch at ecolodge, afternoon transfer back to Hanoi." },
+          { day: 28, title: "Hanoi – Ha Long Bay", details: "Shuttle to Ha Long, board La Regina Classic Cruise, visit cave, sunset, cooking class & dinner on board." },
+          { day: 29, title: "Ha Long Bay – Hanoi", details: "Taichi, visit floating village (kayak or bamboo boat), brunch, disembark & transfer back to Hanoi." }
+        ]
+      },
+      30: {
         id: "vn-cambodia-18-days-detailed",
         name: "Vietnam & Cambodia in 18 Days – Indochina Discovery (Detailed)",
         days: [
@@ -3361,7 +3774,9 @@
           { day: 13, title: "Ho Chi Minh City Free Day", details: "Enjoy a full free day in Ho Chi Minh City. You can go shopping, visit spas, explore museums, or take optional tours. Overnight in Ho Chi Minh City." },
           { day: 14, title: "Ho Chi Minh City → Fly to Siem Reap", details: "After breakfast, transfer to Tan Son Nhat Airport for your flight to Siem Reap. Upon arrival at Siem Reap International Airport, your driver will pick you up and transfer you to your hotel for check-in. The rest of the day is free. Overnight in Siem Reap." },
           { day: 15, title: "Siem Reap Temple Tour", details: "Have breakfast at your hotel. Morning: Meet your tour guide at the hotel lobby. Visit Angkor Wat (World Heritage Site), famous for its beauty and the longest continuous bas-relief depicting Hindu mythology. Continue to Angkor Thom (12th century): See the South Gate (churning of the ocean of milk statues). Explore Bayon Temple (54 towers with over 200 smiling faces of Avolokitesvara). Visit the Royal Enclosure, Phimeanakas, Elephant Terrace, and Terrace of the Leper King. Lunch at a local restaurant. Afternoon: Visit Ta Prohm Temple (mid-12th – early 13th century), partially unrestored with trees growing through the structures ('jungle atmosphere'). Overnight in Siem Reap." },
-          { day: 16, title: "Siem Reap Additional Temples & Departure", details: "Have breakfast at your hotel. Visit Banteay Srei Temple (10th century), known as the 'Citadel of Women' with intricate pink sandstone carvings. Continue to Banteay Samre Temple. Return to Siem Reap for lunch. Afternoon free for last-minute shopping at Old Market or relaxation. In the evening, your private driver will transfer you to Siem Reap International Airport for your onward departure." }
+          { day: 16, title: "Siem Reap Additional Temples", details: "After breakfast, visit Banteay Srei Temple (10th century), known as the 'Citadel of Women' with intricate pink sandstone carvings. Continue to Banteay Samre Temple. Return to Siem Reap for lunch. Afternoon visit to Preah Khan Temple, a large temple complex. Explore Bayon Temple in more detail and visit the Angkor National Museum for deeper understanding of the temple complex. Overnight in Siem Reap." },
+          { day: 17, title: "Siem Reap Additional Temple Exploration", details: "After breakfast, visit additional temples such as Pre Rup, East Mebon, or Neak Pean. Explore more of the Angkor Archaeological Park at your own pace. Enjoy lunch at a local restaurant. Afternoon free for last-minute shopping at Old Market or relaxation. Overnight in Siem Reap." },
+          { day: 18, title: "Siem Reap Departure", details: "Have breakfast at your hotel. Free time for last-minute shopping at Old Market or relaxation. In the afternoon, your private driver will transfer you to Siem Reap International Airport for your onward departure." }
         ]
       },
       "19-mc": {
@@ -3525,7 +3940,8 @@
           { day: 20, title: "Siem Reap Angkor Temples - Sunrise & Main Complexes", details: "Start your day early with a sunrise viewing at Angkor Wat. Arrive before dawn to watch the iconic temple silhouettes against the lightening sky. After sunrise, return to your hotel for breakfast. Then explore Angkor Thom, the last great capital of the Khmer empire. Visit the South Gate, Bayon Temple with its 216 smiling faces, Baphuon Temple, Terrace of the Elephants, and Terrace of the Leper King. After lunch, visit Ta Prohm Temple, partially unrestored with trees growing through the structures. In the late afternoon, climb Phnom Bakheng Hill for sunset views over the Angkor complex. Overnight in Siem Reap." },
           { day: 21, title: "Siem Reap Additional Temples", details: "After breakfast, visit Banteay Srei Temple (10th century), known as the 'Citadel of Women' with intricate pink sandstone carvings. Continue to Banteay Samre Temple. Return to Siem Reap for lunch. Afternoon visit to Preah Khan Temple, a large temple complex. Explore Bayon Temple in more detail and visit the Angkor National Museum for deeper understanding of the temple complex. Overnight in Siem Reap." },
           { day: 22, title: "Siem Reap Additional Temple Exploration", details: "After breakfast, visit additional temples such as Pre Rup, East Mebon, or Neak Pean. Explore more of the Angkor Archaeological Park at your own pace. Enjoy lunch at a local restaurant. Afternoon free for last-minute shopping at Old Market or relaxation. Overnight in Siem Reap." },
-          { day: 23, title: "Siem Reap Departure", details: "Have breakfast at your hotel. Free time for last-minute shopping at Old Market or relaxation. In the afternoon, your private driver will transfer you to Siem Reap International Airport for your onward departure." }
+          { day: 23, title: "Siem Reap Additional Temple Visits & Local Market", details: "After breakfast, continue exploring the Angkor complex. Visit additional temples and cultural sites. Explore local markets and enjoy lunch at a local restaurant. Afternoon free for personal exploration or optional activities. Overnight in Siem Reap." },
+          { day: 24, title: "Siem Reap Departure", details: "Have breakfast at your hotel. Free time for last-minute shopping at Old Market or relaxation. In the afternoon, your private driver will transfer you to Siem Reap International Airport for your onward departure." }
         ]
       },
       "25-mc": {
@@ -6905,6 +7321,8 @@
     
     // Expose function globally for onclick handlers
     window.loadItineraryIntoGenerator = loadItineraryIntoGenerator;
+    window.exportBriefItineraryToDocx = exportBriefItineraryToDocx;
+    window.exportDetailedItineraryToDocx = exportDetailedItineraryToDocx;
 
     // Parse brief itinerary day string and extract activities
     function parseBriefDayDescription(dayStr) {
@@ -8500,8 +8918,11 @@
               ${data.days.map(day => `<p style="margin: 8px 0;">${day}</p>`).join("")}
             </div>
             <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
-              <button class="btn btn-primary" onclick="loadItineraryIntoGenerator(briefItineraries['${days}'], false)" style="padding: 10px 20px; font-size: 14px; font-weight: 600;">
+              <button class="btn btn-primary" onclick="loadItineraryIntoGenerator(briefItineraries['${days}'], false)" style="padding: 10px 20px; font-size: 14px; font-weight: 600; margin-right: 10px;">
                 📋 Load into Generator
+              </button>
+              <button class="btn btn-primary" onclick="exportBriefItineraryToDocx('${days}')" style="padding: 10px 20px; font-size: 14px; font-weight: 600;">
+                💾 Save as DOCX
               </button>
               <p style="margin-top: 10px; font-size: 12px; color: #666;">
                 Click to auto-fill the form fields and use this route when generating your customized itinerary.
@@ -8557,8 +8978,11 @@
               `).join("")}
             </div>
             <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
-              <button class="btn btn-primary" onclick="loadItineraryIntoGenerator(detailedItineraries['${days}'], true)" style="padding: 10px 20px; font-size: 14px; font-weight: 600;">
+              <button class="btn btn-primary" onclick="loadItineraryIntoGenerator(detailedItineraries['${days}'], true)" style="padding: 10px 20px; font-size: 14px; font-weight: 600; margin-right: 10px;">
                 📋 Load into Generator
+              </button>
+              <button class="btn btn-primary" onclick="exportDetailedItineraryToDocx('${days}')" style="padding: 10px 20px; font-size: 14px; font-weight: 600;">
+                💾 Save as DOCX
               </button>
               <p style="margin-top: 10px; font-size: 12px; color: #666;">
                 Click to auto-fill the form fields and use this route when generating your customized itinerary.
@@ -8681,13 +9105,406 @@
       window.print();
     }
 
-    // Add event listener for print button
-    const printBtn = document.getElementById("printItineraryBtn");
-    if (printBtn) {
-      printBtn.addEventListener("click", () => {
-        printItinerary();
-      });
+    function exportBriefItineraryToDocx(days) {
+      console.log('exportBriefItineraryToDocx called with days:', days, 'type:', typeof days);
+      // Convert to number if it's a string
+      const daysNum = typeof days === 'string' ? parseInt(days, 10) : days;
+      console.log('Looking for key:', daysNum);
+      console.log('briefItineraries available:', typeof briefItineraries !== 'undefined');
+      
+      // Try both string and number keys
+      let data = briefItineraries[daysNum] || briefItineraries[days] || briefItineraries[String(daysNum)];
+      console.log('Found data:', data ? 'yes' : 'no');
+      
+      if (!data) {
+        console.error('Available keys:', Object.keys(briefItineraries || {}));
+        alert('Itinerary not found for ' + days + ' days. Check console for available keys.');
+        return;
+      }
+      exportItineraryTemplateToDocx(data, false);
     }
+
+    function exportDetailedItineraryToDocx(days) {
+      console.log('exportDetailedItineraryToDocx called with days:', days, 'type:', typeof days);
+      // Convert to number if it's a string
+      const daysNum = typeof days === 'string' ? parseInt(days, 10) : days;
+      console.log('Looking for key:', daysNum);
+      console.log('detailedItineraries available:', typeof detailedItineraries !== 'undefined');
+      
+      // Try both string and number keys
+      let data = detailedItineraries[daysNum] || detailedItineraries[days] || detailedItineraries[String(daysNum)];
+      console.log('Found data:', data ? 'yes' : 'no');
+      
+      if (!data) {
+        console.error('Available keys:', Object.keys(detailedItineraries || {}));
+        alert('Itinerary not found for ' + days + ' days. Check console for available keys.');
+        return;
+      }
+      exportItineraryTemplateToDocx(data, true);
+    }
+
+    function exportItineraryTemplateToDocx(data, isDetailed) {
+      if (typeof JSZip === 'undefined') {
+        alert('JSZip library is not loaded. Please refresh the page and try again.');
+        return;
+      }
+
+      try {
+        const zip = new JSZip();
+        let documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>`;
+
+        // Header
+        documentXml += `
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="32"/></w:rPr><w:t>VHT – Vietnam Holiday Tours</w:t></w:r>
+    </w:p>
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r><w:t>Tailor-made itinerary proposal</w:t></w:r>
+    </w:p>
+    <w:p><w:r><w:t/></w:r></w:p>`;
+
+        // Title
+        const title = (data.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        documentXml += `
+    <w:p>
+      <w:pPr><w:spacing w:before="240" w:after="240"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>${title}</w:t></w:r>
+    </w:p>
+    <w:p><w:r><w:t/></w:r></w:p>`;
+
+        // Details
+        if (data.destinations) {
+          const dest = data.destinations.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Destinations: </w:t></w:r><w:r><w:t>${dest}</w:t></w:r></w:p>`;
+        }
+        if (data.startsIn) {
+          const start = data.startsIn.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Starts in: </w:t></w:r><w:r><w:t>${start}</w:t></w:r></w:p>`;
+        }
+        if (data.endsIn) {
+          const end = data.endsIn.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Ends in: </w:t></w:r><w:r><w:t>${end}</w:t></w:r></w:p>`;
+        }
+        if (data.intro) {
+          const intro = data.intro.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          documentXml += `
+    <w:p><w:r><w:t/></w:r></w:p>
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Introduction:</w:t></w:r></w:p>
+    <w:p><w:r><w:t>${intro}</w:t></w:r></w:p>
+    <w:p><w:r><w:t/></w:r></w:p>`;
+        }
+
+        // Days
+        documentXml += `
+    <w:p>
+      <w:pPr><w:spacing w:before="240"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="24"/></w:rPr><w:t>Day-by-Day Itinerary:</w:t></w:r>
+    </w:p>`;
+
+        if (isDetailed && data.days && Array.isArray(data.days)) {
+          // Detailed format
+          data.days.forEach((dayObj) => {
+            const dayNum = dayObj.day || 0;
+            const title = (dayObj.title || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const details = (dayObj.details || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            documentXml += `
+    <w:p>
+      <w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="22"/></w:rPr><w:t>Day ${dayNum} – ${title}</w:t></w:r>
+    </w:p>
+    <w:p><w:r><w:t>${details}</w:t></w:r></w:p>`;
+          });
+        } else if (data.days && Array.isArray(data.days)) {
+          // Brief format
+          data.days.forEach((day) => {
+            const dayText = (day || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p>
+      <w:pPr><w:spacing w:before="120" w:after="120"/></w:pPr>
+      <w:r><w:t>${dayText}</w:t></w:r>
+    </w:p>`;
+          });
+        }
+
+        documentXml += `
+  </w:body>
+</w:document>`;
+
+        // Create DOCX structure
+        zip.file("word/document.xml", documentXml);
+        zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+        zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+        zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>`);
+
+        // Generate and download - use same method as working generator export
+        zip.generateAsync({ type: "blob" }).then(function(blob) {
+          const fileName = `${(data.name || 'Itinerary').replace(/[^a-z0-9]/gi, '_')}.docx`;
+          console.log('Template DOCX blob created, size:', blob.size);
+          
+          // Force download - same method as generator
+          if (blob.size > 0) {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            console.log('Template DOCX download triggered for:', fileName);
+          } else {
+            alert('Error: Generated file is empty');
+          }
+        }).catch(function(error) {
+          console.error('Error generating ZIP for template:', error);
+          alert('Error: ' + error.message);
+        });
+      } catch (error) {
+        console.error('Error exporting to DOCX:', error);
+        alert('Error exporting to DOCX: ' + error.message);
+      }
+    }
+
+    function exportToDocx() {
+      console.log('exportToDocx called');
+      console.log('state:', state);
+      console.log('state.daysData:', state.daysData);
+      console.log('state.daysData length:', state.daysData ? state.daysData.length : 'null');
+      
+      if (!state || !state.daysData || !state.daysData.length) {
+        alert("Please generate an itinerary first.\n\nMake sure you:\n1. Fill out the form\n2. Click 'Generate Itinerary'\n3. Wait for the itinerary to appear\n4. Then click 'Save as DOCX'");
+        return;
+      }
+
+      // Check if libraries are loaded
+      if (typeof JSZip === 'undefined') {
+        alert('JSZip library is not loaded. Please refresh the page and try again.');
+        console.error('JSZip is not defined');
+        return;
+      }
+
+      if (typeof saveAs === 'undefined') {
+        alert('FileSaver library is not loaded. Please refresh the page and try again.');
+        console.error('saveAs is not defined');
+        return;
+      }
+
+      console.log('All checks passed, generating DOCX...');
+
+      try {
+        // Get group name or use default
+        const groupName = document.getElementById('groupName')?.value || 'Unnamed group';
+        const days = state.daysData.length;
+        const area = document.getElementById('area')?.value || 'Vietnam';
+        const startCity = document.getElementById('startCity')?.value || '';
+        const endCity = document.getElementById('endCity')?.value || '';
+
+        // Create DOCX using JSZip (DOCX is a ZIP file with XML)
+        const zip = new JSZip();
+        
+        // Create document.xml content
+        let documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>`;
+
+        // Add header
+        documentXml += `
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="32"/></w:rPr><w:t>VHT – Vietnam Holiday Tours</w:t></w:r>
+    </w:p>
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r><w:t>Tailor-made itinerary proposal</w:t></w:r>
+    </w:p>
+    <w:p><w:r><w:t/></w:r></w:p>`;
+
+        // Add title
+        documentXml += `
+    <w:p>
+      <w:pPr><w:pStyle w:val="Heading2"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="28"/></w:rPr><w:t>${groupName} – ${days} days in ${area}</w:t></w:r>
+    </w:p>
+    <w:p><w:r><w:t/></w:r></w:p>`;
+
+        // Add trip details
+        documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Area: </w:t></w:r><w:r><w:t>${area}</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Start: </w:t></w:r><w:r><w:t>${startCity}</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>End: </w:t></w:r><w:r><w:t>${endCity}</w:t></w:r></w:p>
+    <w:p><w:r><w:t/></w:r></w:p>`;
+
+        // Add days
+        state.daysData.forEach((dayData, index) => {
+          const dayNum = index + 1;
+          const location = (dayData.location || 'TBD').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          
+          documentXml += `
+    <w:p>
+      <w:pPr><w:pStyle w:val="Heading3"/><w:spacing w:before="240" w:after="120"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="24"/></w:rPr><w:t>Day ${dayNum} – ${location}</w:t></w:r>
+    </w:p>`;
+
+          if (dayData.hotel) {
+            const hotel = dayData.hotel.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Hotel: </w:t></w:r><w:r><w:t>${hotel}</w:t></w:r></w:p>`;
+          }
+
+          if (dayData.meals) {
+            const meals = dayData.meals.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Meals: </w:t></w:r><w:r><w:t>${meals}</w:t></w:r></w:p>`;
+          }
+
+          if (dayData.transfer) {
+            const transfer = dayData.transfer.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Transfer: </w:t></w:r><w:r><w:t>${transfer}</w:t></w:r></w:p>`;
+          }
+
+          if (dayData.morningActivity) {
+            const activity = dayData.morningActivity.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Morning: </w:t></w:r><w:r><w:t>${activity}</w:t></w:r></w:p>`;
+          }
+
+          if (dayData.afternoonActivity) {
+            const activity = dayData.afternoonActivity.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Afternoon: </w:t></w:r><w:r><w:t>${activity}</w:t></w:r></w:p>`;
+          }
+
+          if (dayData.eveningActivity) {
+            const activity = dayData.eveningActivity.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            documentXml += `
+    <w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Evening: </w:t></w:r><w:r><w:t>${activity}</w:t></w:r></w:p>`;
+          }
+
+          documentXml += `
+    <w:p><w:r><w:t/></w:r></w:p>`;
+        });
+
+        documentXml += `
+  </w:body>
+</w:document>`;
+
+        // Create minimal DOCX structure
+        zip.file("word/document.xml", documentXml);
+        zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+        zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+        zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>`);
+
+        // Generate and download
+        zip.generateAsync({ type: "blob" }).then(function(blob) {
+          const fileName = `${groupName.replace(/[^a-z0-9]/gi, '_')}_${days}Days_${startCity}_${endCity}.docx`;
+          console.log('Blob created, size:', blob.size);
+          
+          // Force download
+          if (blob.size > 0) {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            console.log('Download triggered for:', fileName);
+          } else {
+            alert('Error: Generated file is empty');
+          }
+        }).catch(function(error) {
+          console.error('Error generating ZIP:', error);
+          alert('Error: ' + error.message);
+        });
+      } catch (error) {
+        console.error('Error exporting to DOCX:', error);
+        alert('Error exporting to DOCX: ' + error.message);
+      }
+    }
+
+    // Add event listeners for buttons
+    function setupButtons() {
+      const printBtn = document.getElementById("printItineraryBtn");
+      if (printBtn) {
+        printBtn.addEventListener("click", () => {
+          printItinerary();
+        });
+      }
+
+      const exportDocxBtn = document.getElementById("exportDocxBtn");
+      if (exportDocxBtn) {
+        exportDocxBtn.addEventListener("click", () => {
+          console.log('DOCX export button clicked');
+          console.log('JSZip available:', typeof JSZip !== 'undefined');
+          console.log('FileSaver available:', typeof saveAs !== 'undefined');
+          console.log('state.daysData:', state.daysData ? state.daysData.length : 'null');
+          exportToDocx();
+        });
+        console.log('DOCX export button listener attached');
+      } else {
+        console.error('DOCX export button not found!');
+      }
+    }
+
+    // Setup buttons when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupButtons);
+    } else {
+      setupButtons();
+    }
+
+    // Verify libraries are loaded after a short delay
+    setTimeout(() => {
+      if (typeof JSZip === 'undefined') {
+        console.error('JSZip library failed to load');
+        const btn = document.getElementById('exportDocxBtn');
+        if (btn) {
+          btn.style.opacity = '0.5';
+          btn.title = 'DOCX export unavailable - JSZip library not loaded. Please refresh the page.';
+        }
+      }
+      if (typeof saveAs === 'undefined') {
+        console.error('FileSaver library failed to load');
+        const btn = document.getElementById('exportDocxBtn');
+        if (btn) {
+          btn.style.opacity = '0.5';
+          btn.title = 'DOCX export unavailable - FileSaver library not loaded. Please refresh the page.';
+        }
+      }
+      if (typeof JSZip !== 'undefined' && typeof saveAs !== 'undefined') {
+        console.log('DOCX export libraries loaded successfully');
+      }
+    }, 1000);
 
     renderItinerary();
 
