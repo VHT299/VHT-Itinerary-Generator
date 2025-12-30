@@ -2112,8 +2112,198 @@
     const state = {
       traveller: {},
       daysData: [],
-      selectedItineraryTemplate: null // Store selected brief/detailed itinerary template
+      selectedItineraryTemplate: null, // Store selected brief/detailed itinerary template
+      jsonItineraries: null, // Loaded from itineraries_database.json
+      jsonHotels: null // Loaded from hotels_from_itineraries.json
     };
+
+    // =======================
+    // JSON DATA LOADING
+    // =======================
+    
+    // Load JSON files on page load
+    async function loadJSONData() {
+      try {
+        // Load itineraries database
+        const itinerariesResponse = await fetch('itineraries_database.json');
+        if (itinerariesResponse.ok) {
+          const data = await itinerariesResponse.json();
+          state.jsonItineraries = data.briefItineraries || {};
+          console.log('✅ Loaded JSON itineraries:', Object.keys(state.jsonItineraries).length, 'itineraries');
+        }
+      } catch (err) {
+        console.warn('⚠️ Could not load itineraries_database.json:', err);
+        // Continue without JSON data - not critical
+      }
+
+      try {
+        // Load hotels from itineraries
+        const hotelsResponse = await fetch('hotels_from_itineraries.json');
+        if (hotelsResponse.ok) {
+          const data = await hotelsResponse.json();
+          state.jsonHotels = data.hotelsByCity || {};
+          
+          // Merge JSON hotels with existing HOTEL_OPTIONS
+          Object.keys(state.jsonHotels).forEach(city => {
+            if (!HOTEL_OPTIONS[city]) {
+              HOTEL_OPTIONS[city] = [];
+            }
+            // Add JSON hotels that aren't already in the list
+            const existingNames = new Set(HOTEL_OPTIONS[city].map(h => 
+              typeof h === 'string' ? h : h.name
+            ));
+            state.jsonHotels[city].forEach(hotelName => {
+              if (!existingNames.has(hotelName)) {
+                HOTEL_OPTIONS[city].push({name: hotelName, stars: 0}); // Default to 0 stars if unknown
+              }
+            });
+          });
+          console.log('✅ Loaded and merged JSON hotels');
+        }
+      } catch (err) {
+        console.warn('⚠️ Could not load hotels_from_itineraries.json:', err);
+        // Continue without JSON hotels - not critical
+      }
+    }
+
+    // Find matching JSON itinerary based on days, start, and end cities
+    function findMatchingJSONRoute(numDays, startCity, endCity) {
+      if (!state.jsonItineraries) return null;
+      if (typeof normalizeCityName === 'undefined') return null; // Safety check
+
+      const normalizedStart = startCity ? normalizeCityName(startCity) : '';
+      const normalizedEnd = endCity ? normalizeCityName(endCity) : '';
+
+      // Try exact day match first
+      const exactMatch = state.jsonItineraries[String(numDays)];
+      if (exactMatch) {
+        const matchStart = extractCityName(exactMatch.startsIn || '');
+        const matchEnd = extractCityName(exactMatch.endsIn || '');
+        const normalizedMatchStart = normalizeCityName(matchStart);
+        const normalizedMatchEnd = normalizeCityName(matchEnd);
+
+        // Check if start/end cities match (or are close)
+        if ((!startCity || normalizedMatchStart === normalizedStart || 
+             matchStart.toLowerCase().includes(normalizedStart.toLowerCase()) ||
+             normalizedStart.toLowerCase().includes(matchStart.toLowerCase())) &&
+            (!endCity || normalizedMatchEnd === normalizedEnd ||
+             matchEnd.toLowerCase().includes(normalizedEnd.toLowerCase()) ||
+             normalizedEnd.toLowerCase().includes(matchEnd.toLowerCase()))) {
+          return exactMatch;
+        }
+      }
+
+      // Try nearby day matches (±2 days)
+      for (let offset = -2; offset <= 2; offset++) {
+        if (offset === 0) continue; // Already checked
+        const dayKey = String(numDays + offset);
+        const match = state.jsonItineraries[dayKey];
+        if (match) {
+          const matchStart = extractCityName(match.startsIn || '');
+          const matchEnd = extractCityName(match.endsIn || '');
+          const normalizedMatchStart = normalizeCityName(matchStart);
+          const normalizedMatchEnd = normalizeCityName(matchEnd);
+
+          if ((!startCity || normalizedMatchStart === normalizedStart ||
+               matchStart.toLowerCase().includes(normalizedStart.toLowerCase()) ||
+               normalizedStart.toLowerCase().includes(matchStart.toLowerCase())) &&
+              (!endCity || normalizedMatchEnd === normalizedEnd ||
+               matchEnd.toLowerCase().includes(normalizedEnd.toLowerCase()) ||
+               normalizedEnd.toLowerCase().includes(matchEnd.toLowerCase()))) {
+            return match;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    // Extract route from JSON itinerary (defined later to use CITY_COORDINATES)
+    function extractRouteFromJSONItinerary(jsonItinerary) {
+      if (!jsonItinerary || !jsonItinerary.days) return null;
+      
+      // Safety check - CITY_COORDINATES must be defined
+      if (typeof CITY_COORDINATES === 'undefined' || !CITY_COORDINATES) {
+        console.warn('CITY_COORDINATES not available yet, skipping JSON route extraction');
+        return null;
+      }
+
+      const route = [];
+      const seenCities = new Set();
+      
+      jsonItinerary.days.forEach(dayStr => {
+        // Parse day string like "Day 1 – Ho Chi Minh (Saigon) arrival"
+        // or "Day 3 – Ho Chi Minh – Mui Ne by private car"
+        // or "Day 4 – Hoi An walking tour - Basket boat tour"
+        const parts = dayStr.split(/[–-]/).map(p => p.trim());
+        if (parts.length > 1) {
+          // Get the main city part (usually the last meaningful part)
+          let cityPart = parts[parts.length - 1];
+          
+          // If it contains "to" or "→", get the destination
+          if (cityPart.includes(' to ') || cityPart.includes(' → ')) {
+            const toParts = cityPart.split(/ to | → /);
+            if (toParts.length > 1) {
+              cityPart = toParts[toParts.length - 1];
+            }
+          }
+          
+          // Extract city name (remove common suffixes)
+          let city = cityPart
+            .replace(/\s*(arrival|departure|by private car|by bus|fly to|transfer|full day|half day|day tour|walking tour|free day).*/i, '')
+            .replace(/\s*\([^)]*\)/g, '') // Remove parentheses
+            .replace(/\s*\[.*?\]/g, '') // Remove brackets
+            .trim();
+          
+          // Handle "City / City" format - take first city
+          if (city.includes('/')) {
+            city = city.split('/')[0].trim();
+          }
+          
+          // Handle "City, Country" format
+          if (city.includes(',')) {
+            city = city.split(',')[0].trim();
+          }
+          
+          // Try to extract city from multi-part descriptions
+          // Look for known city names in the string
+          let foundCity = null;
+          try {
+            if (typeof CITY_COORDINATES !== 'undefined' && CITY_COORDINATES) {
+              const knownCities = Object.keys(CITY_COORDINATES);
+              for (const knownCity of knownCities) {
+                if (city.toLowerCase().includes(knownCity.toLowerCase()) || 
+                    knownCity.toLowerCase().includes(city.toLowerCase())) {
+                  foundCity = knownCity;
+                  break;
+                }
+              }
+            }
+          } catch (e) {
+            // CITY_COORDINATES not available yet - skip city matching
+          }
+          
+          if (foundCity) {
+            city = foundCity;
+          } else if (typeof normalizeCityName !== 'undefined') {
+            // Normalize city name (only if function exists)
+            city = normalizeCityName(city);
+          }
+          
+          // Only add if we have coordinates and haven't seen it in the previous day
+          if (city && CITY_COORDINATES && CITY_COORDINATES[city] && !seenCities.has(city)) {
+            route.push(city);
+            seenCities.add(city);
+          } else if (route.length > 0) {
+            // If we can't identify a new city, repeat the last city
+            route.push(route[route.length - 1]);
+          }
+        }
+      });
+
+      return route.length > 0 ? route : null;
+    }
+
 
     // =======================
     // VHT ITINERARY LIBRARY
@@ -8924,6 +9114,31 @@
         }
       }
 
+      // Check for matching JSON itinerary route (smart suggestion from proven itineraries)
+      let jsonRoute = null;
+      try {
+        if (state.jsonItineraries && typeof CITY_COORDINATES !== 'undefined') {
+          const matchingJSON = findMatchingJSONRoute(t.numDays, t.startCity, t.endCity);
+          if (matchingJSON) {
+            jsonRoute = extractRouteFromJSONItinerary(matchingJSON);
+            if (jsonRoute && jsonRoute.length > 0) {
+              // Adjust route length to match numDays
+              while (jsonRoute.length < t.numDays) {
+                jsonRoute.push(jsonRoute[jsonRoute.length - 1] || t.startCity);
+              }
+              jsonRoute = jsonRoute.slice(0, t.numDays);
+              // Ensure start and end cities match user input
+              if (t.startCity) jsonRoute[0] = t.startCity;
+              if (t.endCity) jsonRoute[jsonRoute.length - 1] = t.endCity;
+              console.log('✅ Using JSON route suggestion:', jsonRoute);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('⚠️ Error using JSON route suggestion:', err);
+        // Continue with normal routing
+      }
+
       // Check for geographic route first (includes intermediate cities like Da Nang, Hoi An, Hue, etc.)
       const geoRoute = buildGeographicRoute(t);
       console.log("generateDaysData - geoRoute:", geoRoute, "length:", geoRoute ? geoRoute.length : 0, "expected:", t.numDays, "area:", t.area, "startCity:", t.startCity, "endCity:", t.endCity);
@@ -9066,7 +9281,10 @@
 
       for (let i = 0; i < t.numDays; i++) {
         let city;
-        if (countrywideRoute && countrywideRoute[i]) {
+        if (jsonRoute && jsonRoute[i]) {
+          // Use JSON route suggestion (proven itinerary) - highest priority
+          city = jsonRoute[i];
+        } else if (countrywideRoute && countrywideRoute[i]) {
           // Use country-wide route
           city = countrywideRoute[i];
         } else if (smartRoute && smartRoute[i]) {
@@ -9237,25 +9455,33 @@
         [Math.min(extendedBounds.getNorth(), 23.5), Math.min(extendedBounds.getEast(), 110.0)]
       ]);
       
-      // Fit to constrained bounds (Vietnam-focused)
+      // Fit to constrained bounds (Vietnam-focused) with better padding
       itineraryMap.fitBounds(constrainedBounds, {
-        padding: [50, 50]
+        padding: [80, 80] // Increased padding for better visibility
       });
       
       // Ensure map fills the container properly
       setTimeout(() => {
         itineraryMap.invalidateSize();
         itineraryMap.fitBounds(constrainedBounds, {
-          padding: [50, 50]
+          padding: [80, 80]
         });
       }, 100);
       
       setTimeout(() => {
         itineraryMap.invalidateSize();
         itineraryMap.fitBounds(constrainedBounds, {
-          padding: [50, 50]
+          padding: [80, 80]
         });
       }, 300);
+      
+      // Final adjustment after map fully loads
+      setTimeout(() => {
+        itineraryMap.invalidateSize();
+        itineraryMap.fitBounds(constrainedBounds, {
+          padding: [80, 80]
+        });
+      }, 600);
       
       // Fallback: Add simplified map tiles if image fails to load (semi-transparent)
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -9376,13 +9602,50 @@
           const transfer = dayIndex >= 0 ? (state.daysData[dayIndex].transfer || "").toLowerCase() : "";
           
           // Detect transfer type: flight, railway, or road
-          // Calculate distance in degrees (approximate)
+          // Calculate distance in degrees and convert to approximate kilometers
           const latDiff = toCoords[0] - fromCoords[0];
           const lngDiff = toCoords[1] - fromCoords[1];
-          const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
-          const isFlight = transfer.includes("fly") || 
+          const distanceDegrees = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+          // Convert degrees to approximate kilometers (1 degree ≈ 111 km)
+          const distanceKm = distanceDegrees * 111;
+          
+          // Extract hours from transfer text (e.g., "7 hours", "6-7 hours", "7 hour drive")
+          const hoursMatch = transfer.match(/(\d+)[\s-]*(?:hour|hr|h)/i);
+          const driveHours = hoursMatch ? parseFloat(hoursMatch[1]) : 0;
+          
+          // Check for explicit ground transportation keywords
+          const isGroundTransport = transfer.includes("car") || 
+                                   transfer.includes("bus") || 
+                                   transfer.includes("boat") || 
+                                   transfer.includes("drive") || 
+                                   transfer.includes("transfer") ||
+                                   transfer.includes("private") ||
+                                   transfer.includes("road") ||
+                                   transfer.includes("limousine") ||
+                                   transfer.includes("shuttle");
+          
+          // Check for flight keywords
+          const hasFlightKeyword = transfer.includes("fly") || 
                           transfer.includes("flight") || 
-                          distance > 0.8; // Long distance = likely flight
+                                   transfer.includes("airport") ||
+                                   transfer.includes("airline");
+          
+          // Long drives (>6 hours) should be flights - convert to flight
+          // 7 hours drive ≈ 350-420km at 50-60km/h average, which is better as flight
+          // Only convert if it's explicitly a drive/car/bus (not a flight description)
+          const isLongDrive = driveHours >= 6 && (isGroundTransport || transfer.includes("hour"));
+          
+          // Flight detection: 
+          // 1. Long drive (>6 hours) - automatically convert to flight (blue dashed)
+          // 2. Has flight keyword AND long distance (>200km)
+          // 3. Very long distance (>500km) even without explicit keyword
+          // Exclude if very short distance (<100km = always ground) AND not a long drive
+          const isFlight = isLongDrive || // Long drives become flights
+                          (distanceKm >= 100 && !isGroundTransport && ( // Must be at least 100km and not explicitly ground transport
+            (hasFlightKeyword && distanceKm > 200) || 
+            distanceKm > 500
+          ));
+          
           const isRailway = transfer.includes("train") || 
                            transfer.includes("railway") || 
                            transfer.includes("rail");
@@ -9420,11 +9683,11 @@
           }).addTo(itineraryMap);
         });
         
-        // Draw road segments (solid blue lines)
+        // Draw road segments (solid brown lines for ground transportation)
         const roadSegments = routeSegments.filter(s => !s.isFlight && !s.isRailway);
         roadSegments.forEach(segment => {
           const roadLine = L.polyline([segment.from, segment.to], {
-            color: '#2563eb',
+            color: '#8B4513', // Brown color for ground transportation
             weight: 3,
             opacity: 0.95,
             dashArray: '0', // Solid line
@@ -10657,7 +10920,8 @@
     })();
     // ========== END SIDEBAR HELPER ==========
 
-    // Print button listener
+    // Print button listener and JSON data loading
+    if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       const printBtn = document.getElementById('printItineraryBtn');
       if (printBtn) {
@@ -10665,7 +10929,22 @@
           window.print();
         });
       }
-    });
+        
+        // Load JSON data on page load
+        loadJSONData();
+      });
+    } else {
+      // DOM already loaded
+      const printBtn = document.getElementById('printItineraryBtn');
+      if (printBtn) {
+        printBtn.addEventListener('click', () => {
+          window.print();
+        });
+      }
+      
+      // Load JSON data immediately
+      loadJSONData();
+    }
   </script>
 
   <!-- ========== FLOATING SIDEBAR HELPER FOR DAYS SELECTION ========== -->

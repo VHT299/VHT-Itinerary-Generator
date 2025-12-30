@@ -750,6 +750,48 @@
         "Day 29 – Ha Long Bay floating village, brunch on board, return to Hanoi",
         "Day 30 – Free time in Hanoi & departure transfer to the airport"
       ]
+    },
+    "30-mc": {
+      "id": "vn-cambodia-30-days",
+      "name": "Private Vietnam - Cambodia 30 Days 29 Nights - Complete Indochina Journey",
+      "destinations": "Ha Noi, Ninh Binh, Ha Long Bay, Hue, Da Nang, Hoi An, Nha Trang, Ho Chi Minh city, Siemreap",
+      "startsIn": "Ha Noi, Viet Nam",
+      "endsIn": "Siemreap, Cambodia",
+      "tourType": "Private tour",
+      "travelStyle": "Highlight Tours, Classic Tours, Family Tours, Luxury Tours",
+      "intro": "A complete 30-day journey through Vietnam and Cambodia. Explore Hanoi, Ha Long Bay, Hue, Hoi An, Nha Trang, and Ho Chi Minh City before discovering the magnificent temples of Angkor in Siem Reap. This comprehensive Indochina journey offers an immersive exploration of Southeast Asia's beauty and heritage.",
+      "days": [
+        "Day 1 – Ha Noi arrival",
+        "Day 2 – Hanoi city full day",
+        "Day 3 – Ha Noi – Hoa Lu – Tam Coc",
+        "Day 4 – Ha Noi - Ha Long Bay",
+        "Day 5 – Ha Long Bay - Ha Noi – Fly to Hue",
+        "Day 6 – Hue Imperial City tour",
+        "Day 7 – Hue Perfume River boat trip and royal tombs",
+        "Day 8 – Hue additional royal tombs exploration",
+        "Day 9 – Hue – Da Nang – Hoi An via Hai Van Pass",
+        "Day 10 – Hoi An walking tour – Basket boat – Tra Que village",
+        "Day 11 – Hoi An – Ba Na Hills",
+        "Day 12 – Hoi An – My Son Sanctuary half day",
+        "Day 13 – Hoi An free day",
+        "Day 14 – Hoi An additional free day",
+        "Day 15 – Hoi An – Fly to Nha Trang",
+        "Day 16 – Nha Trang beach day",
+        "Day 17 – Nha Trang city tour",
+        "Day 18 – Nha Trang additional beach day",
+        "Day 19 – Nha Trang free day",
+        "Day 20 – Nha Trang – Fly to Ho Chi Minh",
+        "Day 21 – Ho Chi Minh City – Cu Chi Tunnels",
+        "Day 22 – Ho Chi Minh City cultural sites",
+        "Day 23 – Ho Chi Minh – Mekong Delta full day – Fly to Siem Reap",
+        "Day 24 – Siem Reap floating village and Tonle Sap Lake",
+        "Day 25 – Siem Reap Angkor Wat sunrise and main temples",
+        "Day 26 – Siem Reap additional temples",
+        "Day 27 – Siem Reap temple exploration and museum",
+        "Day 28 – Siem Reap additional temple visits",
+        "Day 29 – Siem Reap cultural experiences",
+        "Day 30 – Siem Reap departure"
+      ]
     }
   },
   "detailedItineraries": {
@@ -3079,6 +3121,162 @@
           "day": 30,
           "title": "Departure from Hanoi",
           "details": "Breakfast at your hotel. Enjoy free time until your driver arrives for your transfer to the airport for your onward flight."
+        }
+      ]
+    },
+    "30-mc": {
+      "id": "vn-cambodia-30-days-detailed",
+      "name": "Private Vietnam - Cambodia 30 Days 29 Nights - Complete Indochina Journey (Detailed)",
+      "days": [
+        {
+          "day": 1,
+          "title": "Ha Noi Arrival",
+          "details": "Arrive at Noi Bai International Airport, collect luggage, and meet your guide/driver. Enjoy a comfortable transfer to your hotel in central Hanoi. The rest of the day is free for relaxation or initial exploration of Hanoi. Overnight in Ha Noi"
+        },
+        {
+          "day": 2,
+          "title": "Hanoi City Full Day",
+          "details": "Breakfast at your hotel. 8:00 AM: Tour guide picks you up for a full-day Hanoi exploration. Visit the Ho Chi Minh Complex (dress modestly: shoulders to knees). See the Mausoleum (closed Mondays & Fridays), Presidential Palace, and Stilt House. Explore the unique One Pillar Pagoda in its peaceful gardens. Visit the Temple of Literature, known for its architecture and historical importance. Enjoy a local lunch at a nearby restaurant. Afternoon Options: If Monday or Ethnology Museum closed: Visit the Women's Museum. Otherwise: Visit the Ethnology Museum. Explore the Old Quarter and the serene Ngoc Son Temple on Hoan Kiem Lake. Return to your hotel. Overnight in Ha Noi"
+        },
+        {
+          "day": 3,
+          "title": "Ha Noi – Hoa Lu – Tam Coc",
+          "details": "Enjoy breakfast at your hotel. 8:00 AM: Pick-up from your Hanoi hotel for a trip to Ninh Binh. Explore Hoa Lu, the ancient capital, visiting the temples of the Dinh and Le Dynasties. Enjoy a local lunch featuring Ninh Binh specialties. Experience a serene sampan boat ride in Tam Coc (\"Halong Bay on land\") along the Ngo Dong River, passing limestone karsts and rice paddies. Visit Thai Vi Temple, dedicated to historical Vietnamese kings and figures. Return to Hanoi in the late afternoon. Overnight in Ha Noi"
+        },
+        {
+          "day": 4,
+          "title": "Ha Noi - Ha Long Bay",
+          "details": "8:30 – 8:50: Limousine bus pick-up from your hotel. 12:00: Arrive at Tuan Chau Marina (No. 34), welcomed by Mon Cheri Cruise crew. 12:30: Transfer to Mon Chéri Cruise, itinerary briefing onboard. 13:00: Welcome drinks, wet towels, and special lunch served while cruising towards Lan Ha Bay. Enjoy fresh seafood and other delicacies amidst the stunning scenery of Lan Ha Bay. 15:30: Visit Tra Bau area (unspoiled natural beauty). Enjoy kayaking to explore limestone islands or swim/relax in the Jacuzzi. 17:30 - 18:30: Participate in a cooking demonstration (spring rolls) or admire the sunset over the Gulf of Tonkin from the top deck (Happy Hour: buy one get one free at the bar). 19:30: Enjoy a delicious local dinner prepared by the chef in a romantic setting. 21:00 – 22:00: Relax with cocktails/drinks at the sky bar (surcharge), enjoy spa services (optional), stargaze, or try squid fishing. Overnight in Ha Long Bay"
+        },
+        {
+          "day": 5,
+          "title": "Ha Long Bay - Ha Noi – Fly to Hue",
+          "details": "6:00: Start the day with Tai Chi and enjoy the sunrise. 6:45 - 7:15: Breakfast served while cruising back to Gia Luan jetty. 7:30 - 9:00: Transfer to Cat Ba Island and explore Trung Trang Cave (impressive limestone cave). 9:30: Return to the main boat, check out of cabin (luggage outside). Lunch is served. Settle bar bill. 10:30 - 11:00: Disembark Mon Cheri Cruises, transfer back to Tuan Chau Marina. Relax and wait for luggage. 11:30 - 12:00: Guests ready at Tuan Chau Marina. 15:00: Limousine bus drops you off at Aeon Mall Long Bien, where your driver will take you to Noi Bai Airport for your flight to Hue. Arrive at Phu Bai Airport, meet your driver, and transfer to your hotel in Hue for check-in and rest. Overnight in Hue"
+        },
+        {
+          "day": 6,
+          "title": "Hue Imperial City Tour",
+          "details": "After breakfast, explore the Imperial City (Citadel), a UNESCO World Heritage site. Visit the Forbidden Purple City, where the emperor and his family lived. See the Thai Hoa Palace, Halls of the Mandarins, and the Royal Library. In the afternoon, visit Thien Mu Pagoda, the symbol of Hue, located on the banks of the Perfume River. Enjoy lunch at a local restaurant. Overnight in Hue"
+        },
+        {
+          "day": 7,
+          "title": "Hue Perfume River & Royal Tombs",
+          "details": "After breakfast, take a boat trip on the Perfume River to visit one of the royal tombs (Khai Dinh or Tu Duc). Learn about the Nguyen Dynasty and the architecture of these magnificent mausoleums. Enjoy lunch at a local restaurant. In the afternoon, visit the other royal tomb or explore the countryside. Overnight in Hue"
+        },
+        {
+          "day": 8,
+          "title": "Hue Additional Exploration",
+          "details": "After breakfast, visit additional royal tombs or take a countryside cycling tour to see local life. Visit a local market or traditional craft village. Enjoy lunch at a local restaurant. Afternoon free for personal exploration or optional activities. Overnight in Hue"
+        },
+        {
+          "day": 9,
+          "title": "Hue → Da Nang → Hoi An",
+          "details": "After breakfast, drive from Hue to Hoi An via the scenic Hai Van Pass, one of Vietnam's most beautiful coastal roads. Stop at Marble Mountains in Da Nang to explore the caves and pagodas. Continue to Hoi An and check in to your hotel. In the evening, explore the lantern-lit ancient town. Overnight in Hoi An"
+        },
+        {
+          "day": 10,
+          "title": "Hoi An Walking Tour & Countryside",
+          "details": "After breakfast, enjoy a walking tour of Hoi An Ancient Town, a UNESCO World Heritage site. Visit the Japanese Covered Bridge, Phuc Kien Assembly Hall, and traditional houses. In the afternoon, visit Tra Que Vegetable Village for a hands-on farming experience and enjoy a basket boat ride in the Coconut Forest. Lunch at a local restaurant. Overnight in Hoi An"
+        },
+        {
+          "day": 11,
+          "title": "Ba Na Hills Full-Day Excursion",
+          "details": "After breakfast, depart for Ba Na Hills. Take the world's longest cable car ride to the summit. Visit the iconic Golden Bridge, Le Jardin D'Amour gardens, Linh Ung Pagoda, and Fantasy Park. Enjoy buffet lunch. Explore the French Village. Return to Hoi An in the late afternoon. Overnight in Hoi An"
+        },
+        {
+          "day": 12,
+          "title": "My Son Sanctuary Half-Day Tour",
+          "details": "After breakfast, visit My Son Sanctuary, a UNESCO World Heritage site with ancient Cham temples dating back to the 4th century. Watch a traditional Cham dance performance. Return to Hoi An in the afternoon. The rest of the day is free. Overnight in Hoi An"
+        },
+        {
+          "day": 13,
+          "title": "Hoi An Free Day",
+          "details": "Enjoy a full free day in Hoi An. You can relax on An Bang Beach, visit tailors for custom-made clothing, explore the lantern-lit streets, or take optional tours. Overnight in Hoi An"
+        },
+        {
+          "day": 14,
+          "title": "Hoi An Additional Free Day",
+          "details": "Enjoy another free day in Hoi An for beach activities, shopping, optional cooking class, or personal exploration. Overnight in Hoi An"
+        },
+        {
+          "day": 15,
+          "title": "Hoi An → Fly to Nha Trang",
+          "details": "After breakfast, transfer to Da Nang Airport for your flight to Nha Trang. Upon arrival, meet your driver and transfer to your hotel. Check in and enjoy free time. In the evening, explore the beachfront promenade. Overnight in Nha Trang"
+        },
+        {
+          "day": 16,
+          "title": "Nha Trang Beach Day",
+          "details": "Enjoy a full day at the beach. You can relax on the sandy beaches, take an optional island tour, or participate in water activities like snorkeling, diving, or water sports. Lunch at a beachside restaurant. Overnight in Nha Trang"
+        },
+        {
+          "day": 17,
+          "title": "Nha Trang City Tour",
+          "details": "After breakfast, visit Po Nagar Cham Towers, ancient Hindu temples dating back to the 7th century. Continue to Long Son Pagoda with its large white Buddha statue. Explore local markets and enjoy lunch at a local restaurant. Afternoon free for beach activities or personal exploration. Overnight in Nha Trang"
+        },
+        {
+          "day": 18,
+          "title": "Nha Trang Additional Beach Day",
+          "details": "Enjoy another day at the beach or participate in optional activities like island tours, water sports, or spa treatments. Lunch at a beachside restaurant. Overnight in Nha Trang"
+        },
+        {
+          "day": 19,
+          "title": "Nha Trang Free Day",
+          "details": "Enjoy a free day in Nha Trang for beach activities, optional tours, or personal exploration. Overnight in Nha Trang"
+        },
+        {
+          "day": 20,
+          "title": "Nha Trang → Fly to Ho Chi Minh City",
+          "details": "After breakfast, transfer to Cam Ranh Airport for your flight to Ho Chi Minh City. Upon arrival, meet your driver and transfer to your hotel. Check in and enjoy free time. In the evening, explore the vibrant city center. Overnight in Ho Chi Minh City"
+        },
+        {
+          "day": 21,
+          "title": "Ho Chi Minh City Tour & Cu Chi Tunnels",
+          "details": "Morning: Visit the Cu Chi Tunnels, an intricate underground network used by Viet Cong soldiers. Learn about their living conditions and guerrilla tactics. Afternoon: Explore Ho Chi Minh City's highlights including the Reunification Palace, Notre Dame Cathedral, Central Post Office, and Ben Thanh Market. Lunch at a local restaurant. Overnight in Ho Chi Minh City"
+        },
+        {
+          "day": 22,
+          "title": "Ho Chi Minh City Cultural Sites",
+          "details": "After breakfast, visit the War Remnants Museum for deeper insights into Vietnam's history. Explore the Reunification Palace in more detail. Visit Notre Dame Cathedral and Central Post Office. Enjoy lunch at a local restaurant. Afternoon free for personal exploration. Overnight in Ho Chi Minh City"
+        },
+        {
+          "day": 23,
+          "title": "Mekong Delta Full-Day Excursion → Fly to Siem Reap",
+          "details": "After breakfast, drive to My Tho in the Mekong Delta (approx. 2 hours). Take a boat trip on the Mekong River, visit various islands, enjoy a sampan ride through narrow canals, and experience local life. Sample fresh fruits, enjoy honey tea, and visit a coconut candy workshop. Visit Ben Tre for a cycling tour through coconut plantations. Lunch at a local restaurant. Return to Ho Chi Minh City in the late afternoon. Transfer to Tan Son Nhat Airport for your flight to Siem Reap. Upon arrival, meet your driver and transfer to your hotel. Overnight in Siem Reap"
+        },
+        {
+          "day": 24,
+          "title": "Siem Reap Floating Village & Tonle Sap Lake",
+          "details": "After breakfast, travel to Tonle Sap Lake to visit a floating village (Kompong Khleang or similar). Take a boat ride (about 1.5 hours) to observe the residents' unique lifestyle in stilted houses and floating structures. Learn about the region's rich biodiversity and witness the daily life of the fishing community. If timing permits, enjoy a beautiful sunset on Tonle Sap Lake. Return to Siem Reap. Overnight in Siem Reap"
+        },
+        {
+          "day": 25,
+          "title": "Siem Reap Angkor Temples - Sunrise & Main Complexes",
+          "details": "Start your day early with a sunrise viewing at Angkor Wat. Arrive before dawn to watch the iconic temple silhouettes against the lightening sky. After sunrise, return to your hotel for breakfast. Then explore Angkor Thom, the last great capital of the Khmer empire. Visit the South Gate, Bayon Temple with its 216 smiling faces, Baphuon Temple, Terrace of the Elephants, and Terrace of the Leper King. After lunch, visit Ta Prohm Temple, partially unrestored with trees growing through the structures. In the late afternoon, climb Phnom Bakheng Hill for sunset views over the Angkor complex. Overnight in Siem Reap"
+        },
+        {
+          "day": 26,
+          "title": "Siem Reap Additional Temples",
+          "details": "After breakfast, visit Banteay Srei Temple (10th century), known as the 'Citadel of Women' with intricate pink sandstone carvings. Continue to Banteay Samre Temple. Return to Siem Reap for lunch. Afternoon visit to Preah Khan Temple, a large temple complex. Explore Bayon Temple in more detail and visit the Angkor National Museum for deeper understanding of the temple complex. Overnight in Siem Reap"
+        },
+        {
+          "day": 27,
+          "title": "Siem Reap Additional Temple Exploration",
+          "details": "After breakfast, visit additional temples such as Pre Rup, East Mebon, or Neak Pean. Explore more of the Angkor Archaeological Park at your own pace. Enjoy lunch at a local restaurant. Afternoon free for last-minute shopping at Old Market or relaxation. Overnight in Siem Reap"
+        },
+        {
+          "day": 28,
+          "title": "Siem Reap Additional Temple Visits & Local Market",
+          "details": "After breakfast, continue exploring the Angkor complex. Visit additional temples and cultural sites. Explore local markets and enjoy lunch at a local restaurant. Afternoon free for personal exploration or optional activities. Overnight in Siem Reap"
+        },
+        {
+          "day": 29,
+          "title": "Siem Reap Additional Temple Visits & Cultural Experiences",
+          "details": "After breakfast, visit additional temples and enjoy cultural experiences. Explore more of the Angkor complex or visit local workshops and cultural centers. Enjoy lunch at a local restaurant. Afternoon free for personal exploration. Overnight in Siem Reap"
+        },
+        {
+          "day": 30,
+          "title": "Siem Reap Departure",
+          "details": "Have breakfast at your hotel. Free time for last-minute shopping at Old Market or relaxation. In the afternoon, your private driver will transfer you to Siem Reap International Airport for your onward departure."
         }
       ]
     }
