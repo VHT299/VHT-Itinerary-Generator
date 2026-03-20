@@ -2114,7 +2114,9 @@
       daysData: [],
       selectedItineraryTemplate: null, // Store selected brief/detailed itinerary template
       jsonItineraries: null, // Loaded from itineraries_database.json
-      jsonHotels: null // Loaded from hotels_from_itineraries.json
+      jsonHotels: null, // Loaded from hotels_from_itineraries.json
+      templateFeedback: null, // Store feedback message about template usage
+      lastAutoMatchedSignature: null // Store signature of last auto-matched template (start, end, days)
     };
 
     // =======================
@@ -5769,6 +5771,71 @@
       "Sapa"
     ]);
 
+    // ====== MINIMUM STAYS (Based on analysis of 26 sample itineraries) ======
+    const MINIMUM_STAYS = {
+      "Hanoi": 2,
+      "Hoi An": 2,
+      "Ho Chi Minh City": 2,
+      "Sapa": 2,
+      "Siem Reap": 2,
+      "Da Lat": 1,
+      "Da Nang": 1,
+      "Hue": 1,
+      "Nha Trang": 1,
+      "Mekong Delta": 0, // Day trip only
+      "Mui Ne": 1,
+      "Can Tho": 1,
+      "Cat Ba": 1,
+      "Ninh Binh": 1,
+      "Phong Nha": 1,
+      "Ha Long Bay": 1, // Cruise
+      "Lan Ha Bay": 1, // Cruise
+      "Phnom Penh": 2
+    };
+
+    // ====== PROVEN ROUTE TEMPLATES (Based on most common patterns) ======
+    const PROVEN_ROUTE_TEMPLATES = {
+      "north_hanoi_sapa_halong": ["Hanoi", "Hanoi", "Sapa", "Sapa", "Hanoi", "Ninh Binh", "Ha Long Bay", "Ha Long Bay", "Hanoi"],
+      "north_hanoi_ninhbinh_halong": ["Hanoi", "Hanoi", "Ninh Binh", "Ha Long Bay", "Ha Long Bay", "Hanoi"],
+      "south_central_hoian": ["Ho Chi Minh City", "Ho Chi Minh City", "Mekong Delta", "Hoi An", "Hoi An", "Hoi An", "Da Nang"],
+      "full_vietnam_north_south": ["Hanoi", "Hanoi", "Sapa", "Sapa", "Hanoi", "Hoi An", "Hoi An", "Ho Chi Minh City", "Ho Chi Minh City", "Mekong Delta", "Ho Chi Minh City"],
+      "south_central_coast": ["Ho Chi Minh City", "Ho Chi Minh City", "Mekong Delta", "Nha Trang", "Da Lat", "Hoi An", "Hoi An"],
+      "central_hue_hoian_danang": ["Hue", "Hue", "Hoi An", "Hoi An", "Hoi An", "Da Nang"],
+      "north_south_via_central": ["Hanoi", "Hanoi", "Ninh Binh", "Ha Long Bay", "Ha Long Bay", "Hoi An", "Hoi An", "Ho Chi Minh City", "Ho Chi Minh City", "Mekong Delta"]
+    };
+
+    // ====== TRANSFER MODE RULES (When to use flight vs road) ======
+    const TRANSFER_MODE_RULES = {
+      "Hanoi": { 
+        "Ho Chi Minh City": "flight", 
+        "Da Nang": "flight", 
+        "Hoi An": "flight", 
+        "Sapa": "road",
+        "Ninh Binh": "road",
+        "Ha Long Bay": "road"
+      },
+      "Ho Chi Minh City": { 
+        "Hanoi": "flight", 
+        "Da Nang": "flight", 
+        "Hoi An": "flight", 
+        "Mekong Delta": "road",
+        "Nha Trang": "flight",
+        "Da Lat": "road"
+      },
+      "Hoi An": {
+        "Hanoi": "flight",
+        "Ho Chi Minh City": "flight",
+        "Da Nang": "road",
+        "Hue": "road"
+      },
+      "Da Nang": {
+        "Hanoi": "flight",
+        "Ho Chi Minh City": "flight",
+        "Hoi An": "road",
+        "Hue": "road"
+      }
+    };
+
     function findCityIndexInCorridor(cityName) {
       if (!cityName) return -1;
       return CITY_CORRIDOR.findIndex(c => c.name === cityName);
@@ -7285,6 +7352,314 @@
       return score;
     }
 
+    // ====== NEW HELPER FUNCTIONS FOR IMPROVED ROUTING ======
+    
+    // Enforce minimum stays per city based on analysis
+    function enforceMinimumStays(route, days, tourLevel) {
+      if (!route || route.length === 0) return route;
+      
+      const levelLower = (tourLevel || "").toLowerCase();
+      const grouped = [];
+      let currentCity = null;
+      let currentCount = 0;
+      
+      // Group consecutive same cities
+      for (const city of route) {
+        if (city === currentCity) {
+          currentCount++;
+        } else {
+          if (currentCity) {
+            grouped.push({ city: currentCity, nights: currentCount });
+          }
+          currentCity = city;
+          currentCount = 1;
+        }
+      }
+      if (currentCity) {
+        grouped.push({ city: currentCity, nights: currentCount });
+      }
+      
+      // Apply minimum stays based on tour level
+      const adjusted = [];
+      for (const { city, nights } of grouped) {
+        let minNights = MINIMUM_STAYS[city] || 1;
+        
+        // Adjust for tour level
+        if (levelLower === "easy") {
+          minNights = Math.max(minNights, 2); // Easy: at least 2 nights
+        } else if (levelLower === "moderate") {
+          minNights = Math.max(minNights, 1); // Moderate: at least 1 night
+        }
+        // Challenging: use minimum stays as-is
+        
+        const finalNights = Math.max(nights, minNights);
+        for (let i = 0; i < finalNights; i++) {
+          adjusted.push(city);
+        }
+      }
+      
+      // Adjust to match target days
+      if (adjusted.length > days) {
+        // Trim from middle, preserve start/end
+        const trimmed = [adjusted[0]];
+        const remaining = days - 2;
+        const middle = adjusted.slice(1, -1);
+        for (let i = 0; i < remaining && i < middle.length; i++) {
+          trimmed.push(middle[i]);
+        }
+        trimmed.push(adjusted[adjusted.length - 1]);
+        return trimmed.slice(0, days);
+      } else if (adjusted.length < days) {
+        // Extend last city
+        const lastCity = adjusted[adjusted.length - 1] || route[route.length - 1];
+        while (adjusted.length < days) {
+          adjusted.push(lastCity);
+        }
+      }
+      
+      return adjusted.slice(0, days);
+    }
+    
+    // Find best route template matching start/end cities and days
+    function findBestRouteTemplate(startCity, endCity, days) {
+      const templates = Object.values(PROVEN_ROUTE_TEMPLATES);
+      let bestMatch = null;
+      let bestScore = 0;
+      
+      for (const template of templates) {
+        if (template.length > days + 2 || template.length < days - 2) continue; // Too different in length
+        
+        let score = 0;
+        const templateStart = template[0];
+        const templateEnd = template[template.length - 1];
+        
+        // Check start city match
+        if (normalizeCityName(templateStart) === normalizeCityName(startCity)) {
+          score += 10;
+        }
+        
+        // Check end city match
+        if (normalizeCityName(templateEnd) === normalizeCityName(endCity)) {
+          score += 10;
+        }
+        
+        // Check if route direction matches (north to south, etc.)
+        const startRegion = getCityRegion(startCity);
+        const endRegion = getCityRegion(endCity);
+        const templateStartRegion = getCityRegion(templateStart);
+        const templateEndRegion = getCityRegion(templateEnd);
+        
+        if (startRegion === templateStartRegion && endRegion === templateEndRegion) {
+          score += 5;
+        }
+        
+        // Prefer templates closer in length
+        const lengthDiff = Math.abs(template.length - days);
+        score += Math.max(0, 5 - lengthDiff);
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestMatch = template;
+        }
+      }
+      
+      return bestMatch;
+    }
+    
+    // Prevent unnecessary backtracking in routes
+    function preventBacktracking(route) {
+      if (!route || route.length < 3) return route;
+      
+      const optimized = [route[0]];
+      const visited = new Set([route[0]]);
+      const endCity = route[route.length - 1];
+      
+      for (let i = 1; i < route.length - 1; i++) {
+        const city = route[i];
+        
+        // Same city - extend stay
+        if (city === optimized[optimized.length - 1]) {
+          optimized.push(city);
+          continue;
+        }
+        
+        // If we've visited this city before (and it's not the end), skip it
+        if (visited.has(city) && city !== endCity) {
+          // Extend previous city instead
+          optimized.push(optimized[optimized.length - 1]);
+          continue;
+        }
+        
+        visited.add(city);
+        optimized.push(city);
+      }
+      
+      // Ensure end city is last
+      if (endCity && optimized[optimized.length - 1] !== endCity) {
+        optimized.push(endCity);
+      }
+      
+      return optimized;
+    }
+    
+    // Insert intermediate cities when route is too simple or missing key cities
+    function insertIntermediateCities(route, days, startCity, endCity) {
+      if (!route || route.length < 2) return route;
+      
+      const startRegion = getCityRegion(startCity);
+      const endRegion = getCityRegion(endCity);
+      const uniqueCities = [...new Set(route)];
+      const routeSet = new Set(route);
+      
+      // Check if route is too simple (only 2-3 cities for 6+ days)
+      if (uniqueCities.length <= 2 && days >= 6) {
+        // North to South: add Central cities
+        if (startRegion === "north" && endRegion === "south") {
+          if (days >= 10) {
+            return [startCity, startCity, "Ninh Binh", "Hoi An", "Hoi An", "Hoi An", endCity, endCity, endCity];
+          } else if (days >= 6) {
+            return [startCity, startCity, "Hoi An", "Hoi An", endCity, endCity];
+          }
+        }
+        
+        // South to North: add Central cities
+        if (startRegion === "south" && endRegion === "north") {
+          if (days >= 10) {
+            return [startCity, startCity, startCity, "Hoi An", "Hoi An", "Hoi An", "Ninh Binh", endCity, endCity];
+          } else if (days >= 6) {
+            return [startCity, startCity, "Hoi An", "Hoi An", endCity, endCity];
+          }
+        }
+        
+        // Same region: add nearby cities
+        if (startRegion === endRegion && startRegion === "north") {
+          if (days >= 6) {
+            return [startCity, startCity, "Ninh Binh", "Ha Long Bay", "Ha Long Bay", endCity];
+          }
+        }
+        if (startRegion === endRegion && startRegion === "south") {
+          if (days >= 6) {
+            return [startCity, startCity, "Mekong Delta", endCity, endCity];
+          }
+        }
+      }
+      
+      // NEW: Check if key intermediate cities are missing for North-South routes
+      // Even if route has multiple cities, ensure Hoi An is included for 6+ day North-South trips
+      if (startRegion === "north" && endRegion === "south" && days >= 6 && !routeSet.has("Hoi An")) {
+        // Find best position to insert Hoi An (around 60-70% through the route)
+        const insertIndex = Math.max(1, Math.min(Math.floor(route.length * 0.6), route.length - 2));
+        const newRoute = [...route];
+        
+        // Insert Hoi An with appropriate nights (2 nights for 6-9 days, 3 for 10+)
+        const hoiAnNights = days >= 10 ? 3 : 2;
+        const hoiAnBlock = Array(hoiAnNights).fill("Hoi An");
+        newRoute.splice(insertIndex, 0, ...hoiAnBlock);
+        
+        // Trim to exact days
+        return newRoute.slice(0, days);
+      }
+      
+      // Same for South-North routes
+      if (startRegion === "south" && endRegion === "north" && days >= 6 && !routeSet.has("Hoi An")) {
+        const insertIndex = Math.max(1, Math.min(Math.floor(route.length * 0.4), route.length - 2));
+        const newRoute = [...route];
+        const hoiAnNights = days >= 10 ? 3 : 2;
+        const hoiAnBlock = Array(hoiAnNights).fill("Hoi An");
+        newRoute.splice(insertIndex, 0, ...hoiAnBlock);
+        return newRoute.slice(0, days);
+      }
+      
+      return route;
+    }
+    
+    // Normalize city name for comparison
+    function normalizeCityName(cityName) {
+      if (!cityName) return "";
+      return cityName.toLowerCase()
+        .replace(/ho chi minh|saigon|sai gon/gi, "ho chi minh city")
+        .replace(/hanoi|ha noi/gi, "hanoi")
+        .replace(/da nang|danang/gi, "da nang")
+        .replace(/hoi an|hoian/gi, "hoi an")
+        .trim();
+    }
+    
+    // Validate and auto-correct route for logical geographic flow
+    function validateAndCorrectRoute(route, days, startCity, endCity) {
+      if (!route || route.length !== days) {
+        return route;
+      }
+      
+      const startRegion = getCityRegion(startCity);
+      const endRegion = getCityRegion(endCity);
+      const isNorthSouth = (startRegion === "north" && endRegion === "south") || 
+                          (startRegion === "south" && endRegion === "north");
+      const routeSet = new Set(route);
+      
+      // For 10+ day North-South routes, ensure key cities are included
+      if (isNorthSouth && days >= 10 && startRegion === "north" && endRegion === "south") {
+        let corrected = [...route];
+        let needsCorrection = false;
+        
+        // Check 1: Ninh Binh should be included (between Hanoi and Sapa)
+        if (!routeSet.has("Ninh Binh")) {
+          // Find where to insert: after Hanoi, before Sapa
+          const hanoiIndex = corrected.findIndex(c => c === "Hanoi");
+          const sapaIndex = corrected.findIndex(c => c === "Sapa");
+          const insertIndex = sapaIndex !== -1 ? sapaIndex : (hanoiIndex !== -1 ? hanoiIndex + 2 : 2);
+          corrected.splice(insertIndex, 0, "Ninh Binh");
+          needsCorrection = true;
+        }
+        
+        // Check 2: Hoi An should be included
+        if (!routeSet.has("Hoi An")) {
+          // Insert Hoi An before Ho Chi Minh City
+          const hcmcIndex = corrected.findIndex(c => c === "Ho Chi Minh City");
+          const insertIndex = hcmcIndex !== -1 ? hcmcIndex : Math.floor(corrected.length * 0.6);
+          corrected.splice(insertIndex, 0, "Hoi An", "Hoi An"); // 2 nights minimum
+          needsCorrection = true;
+        }
+        
+        // Check 3: Ensure proper order and distribution: Hanoi → Ninh Binh → Sapa → Hoi An → Ho Chi Minh City → Mekong Delta
+        // Also check if Ho Chi Minh City has too many days (more than 4 for 14-day route)
+        const hcmcCount = corrected.filter(c => c === "Ho Chi Minh City").length;
+        const hasTooManyHCMC = hcmcCount > 4; // More than 4 nights in HCMC is too many
+        
+        if (needsCorrection || hasTooManyHCMC || !routeSet.has("Mekong Delta")) {
+          // Rebuild route with proper distribution for 14-day route
+          const hanoiNights = 2;
+          const ninhBinhNights = 1;
+          const sapaNights = 2;
+          const hoiAnNights = days >= 14 ? 3 : 2; // 3 nights for 14+ days
+          const remainingDays = days - hanoiNights - ninhBinhNights - sapaNights - hoiAnNights;
+          const mekongNights = 1; // Always include Mekong Delta for 14+ days
+          const hcmcNights = Math.max(2, Math.min(4, remainingDays - mekongNights - 1)); // Max 4 nights, reserve 1 for departure
+          const departureDay = 1; // Last day in Ho Chi Minh City
+          
+          // Rebuild route with proper distribution
+          corrected = [];
+          for (let i = 0; i < hanoiNights; i++) corrected.push("Hanoi");
+          for (let i = 0; i < ninhBinhNights; i++) corrected.push("Ninh Binh");
+          for (let i = 0; i < sapaNights; i++) corrected.push("Sapa");
+          for (let i = 0; i < hoiAnNights; i++) corrected.push("Hoi An");
+          for (let i = 0; i < hcmcNights; i++) corrected.push("Ho Chi Minh City");
+          for (let i = 0; i < mekongNights; i++) corrected.push("Mekong Delta");
+          corrected.push("Ho Chi Minh City"); // Departure day
+          
+          // Ensure exact length
+          corrected = corrected.slice(0, days);
+          // Final check: last day must be Ho Chi Minh City
+          if (corrected.length > 0 && corrected[corrected.length - 1] !== "Ho Chi Minh City") {
+            corrected[corrected.length - 1] = "Ho Chi Minh City";
+          }
+        }
+        
+        return corrected;
+      }
+      
+      return route;
+    }
+    
     // Ensure route follows geographic logic (no unnecessary backtracking)
     function ensureGeographicLogic(route, startCity, endCity) {
       if (!route || route.length < 3) return route;
@@ -7377,93 +7752,26 @@
       const levelLower = (tourLevel || "").toLowerCase();
       let optimizedRoute = [...route];
       
+      // First, prevent backtracking
+      optimizedRoute = preventBacktracking(optimizedRoute);
+      
+      // Then enforce minimum stays based on analysis
+      optimizedRoute = enforceMinimumStays(optimizedRoute, days, tourLevel);
+      
       if (levelLower === "easy") {
-        // Easy level: minimize transfers, maximize stays in each city (minimum 2 nights per city)
-        const grouped = [];
-        let currentCity = null;
-        let currentCount = 0;
-        
-        for (const city of optimizedRoute) {
-          if (city === currentCity) {
-            currentCount++;
-          } else {
-            if (currentCity) {
-              // For easy level, ensure minimum 2 nights per city (except Ha Long Bay cruises)
-              const minNights = (currentCity === "Ha Long Bay" || currentCity === "Lan Ha Bay") ? 1 : 2;
-              grouped.push({ city: currentCity, nights: Math.max(currentCount, minNights) });
-            }
-            currentCity = city;
-            currentCount = 1;
-          }
-        }
-        if (currentCity) {
-          const minNights = (currentCity === "Ha Long Bay" || currentCity === "Lan Ha Bay") ? 1 : 2;
-          grouped.push({ city: currentCity, nights: Math.max(currentCount, minNights) });
-        }
-        
-        // Rebuild route with extended stays, but respect total days
-        const newRoute = [];
-        let totalDays = 0;
-        for (const { city, nights } of grouped) {
-          const nightsToAdd = Math.min(nights, days - totalDays);
-          for (let i = 0; i < nightsToAdd && totalDays < days; i++) {
-            newRoute.push(city);
-            totalDays++;
-          }
-        }
-        
-        // Fill remaining days with last city (extend stay)
-        while (newRoute.length < days && newRoute.length > 0) {
-          newRoute.push(newRoute[newRoute.length - 1]);
-        }
-        
-        return newRoute.slice(0, days);
+        // Easy level: minimize transfers, maximize stays in each city
+        // Minimum stays already enforced by enforceMinimumStays
+        // Just ensure we don't exceed days
+        return optimizedRoute.slice(0, days);
         
       } else if (levelLower === "moderate") {
-        // Moderate: balanced approach - ensure at least 1 night per city, prefer 2
-        const grouped = [];
-        let currentCity = null;
-        let currentCount = 0;
-        
-        for (const city of optimizedRoute) {
-          if (city === currentCity) {
-            currentCount++;
-          } else {
-            if (currentCity) {
-              // Moderate: prefer 2 nights but allow 1 for transit
-              const preferredNights = currentCount >= 2 ? currentCount : Math.max(1, currentCount);
-              grouped.push({ city: currentCity, nights: preferredNights });
-            }
-            currentCity = city;
-            currentCount = 1;
-          }
-        }
-        if (currentCity) {
-          const preferredNights = currentCount >= 2 ? currentCount : Math.max(1, currentCount);
-          grouped.push({ city: currentCity, nights: preferredNights });
-        }
-        
-        // Rebuild route
-        const newRoute = [];
-        let totalDays = 0;
-        for (const { city, nights } of grouped) {
-          const nightsToAdd = Math.min(nights, days - totalDays);
-          for (let i = 0; i < nightsToAdd && totalDays < days; i++) {
-            newRoute.push(city);
-            totalDays++;
-          }
-        }
-        
-        while (newRoute.length < days && newRoute.length > 0) {
-          newRoute.push(newRoute[newRoute.length - 1]);
-        }
-        
-        return newRoute.slice(0, days);
+        // Moderate: balanced approach - minimum stays enforced
+        return optimizedRoute.slice(0, days);
         
       } else {
         // Intensive/Adventurous: can handle more transfers, shorter stays OK
-        // Keep route as is but ensure no unnecessary backtracking
-        return optimizedRoute;
+        // But still enforce basic minimums
+        return optimizedRoute.slice(0, days);
       }
     }
 
@@ -7622,6 +7930,36 @@
       // If we cannot locate both cities, fall back to previous logic
       if (startIdx === -1 || endIdx === -1) return null;
 
+      // NEW: Try to match proven route template first
+      const templateRoute = findBestRouteTemplate(startCity, endCity, days);
+      if (templateRoute && templateRoute.length >= days - 2 && templateRoute.length <= days + 2) {
+        // Adjust template to match exact days
+        let adjustedTemplate = [...templateRoute];
+        if (adjustedTemplate.length < days) {
+          // Extend last city
+          const lastCity = adjustedTemplate[adjustedTemplate.length - 1];
+          while (adjustedTemplate.length < days) {
+            adjustedTemplate.push(lastCity);
+          }
+        } else if (adjustedTemplate.length > days) {
+          adjustedTemplate = adjustedTemplate.slice(0, days);
+        }
+        
+        // Ensure start and end cities match
+        adjustedTemplate[0] = startCity;
+        adjustedTemplate[adjustedTemplate.length - 1] = endCity;
+        
+        // Apply required cities and optimizations
+        let finalRoute = adjustedTemplate;
+        if (requiredCities.length > 0) {
+          finalRoute = prioritizeRequiredCities(finalRoute, requiredCities, days);
+        }
+        finalRoute = preventBacktracking(finalRoute);
+        finalRoute = insertIntermediateCities(finalRoute, days, startCity, endCity);
+        finalRoute = optimizeRouteForLevel(finalRoute, days, tourLevel);
+        return ensureGeographicLogic(finalRoute, startCity, endCity);
+      }
+
       const step = startIdx <= endIdx ? 1 : -1;
 
       // Build the corridor between start and end (inclusive)
@@ -7644,56 +7982,224 @@
           }
           return finalRoute;
         }
-        const route = [];
-        for (let d = 0; d < days; d++) {
-          const idx = Math.round((d * (corridorCities - 1)) / (days - 1));
-          route.push(corridor[idx]);
+        
+        // For North-South routes (6+ days), prioritize including Hoi An
+        const startRegion = getCityRegion(startCity);
+        const endRegion = getCityRegion(endCity);
+        const isNorthSouth = (startRegion === "north" && endRegion === "south") || 
+                            (startRegion === "south" && endRegion === "north");
+        
+        let route = [];
+        if (isNorthSouth && days >= 6) {
+          // For North-South routes, ensure we include key cities
+          const hoiAnIndex = corridor.findIndex(c => c === "Hoi An");
+          const ninhBinhIndex = corridor.findIndex(c => c === "Ninh Binh");
+          const sapaIndex = corridor.findIndex(c => c === "Sapa");
+          
+          // For 10+ day routes, include more intermediate cities
+          if (days >= 10 && startRegion === "north" && endRegion === "south") {
+            // Comprehensive route: Hanoi → Ninh Binh → Sapa → Hoi An → Ho Chi Minh City
+            const hanoiNights = 2;
+            const ninhBinhNights = ninhBinhIndex !== -1 ? 1 : 0;
+            const sapaNights = sapaIndex !== -1 ? 2 : 0;
+            const hoiAnNights = hoiAnIndex !== -1 ? Math.max(2, Math.floor((days - hanoiNights - ninhBinhNights - sapaNights) * 0.4)) : 0;
+            const remainingDays = days - hanoiNights - ninhBinhNights - sapaNights - hoiAnNights;
+            const hcmcNights = Math.max(2, remainingDays - 1); // Reserve 1 day for Mekong Delta
+            const mekongNights = remainingDays - hcmcNights;
+            
+            // Build comprehensive route
+            for (let i = 0; i < hanoiNights; i++) route.push("Hanoi");
+            if (ninhBinhNights > 0) {
+              for (let i = 0; i < ninhBinhNights; i++) route.push("Ninh Binh");
+            }
+            if (sapaNights > 0) {
+              for (let i = 0; i < sapaNights; i++) route.push("Sapa");
+            }
+            if (hoiAnNights > 0) {
+              for (let i = 0; i < hoiAnNights; i++) route.push("Hoi An");
+            }
+            for (let i = 0; i < hcmcNights; i++) route.push("Ho Chi Minh City");
+            if (mekongNights > 0) {
+              for (let i = 0; i < mekongNights; i++) route.push("Mekong Delta");
+            }
+            // Add final night in Ho Chi Minh City for departure
+            route.push("Ho Chi Minh City");
+            route = route.slice(0, days);
+          } else if (hoiAnIndex !== -1) {
+            // Build route: start → Hoi An → end, with appropriate nights
+            // For 6 days: 2 nights start, 2 nights Hoi An, 2 nights end
+            // For 7-9 days: 2-3 nights start, 2-3 nights Hoi An, 2-3 nights end
+            const startNights = days === 6 ? 2 : Math.max(2, Math.floor(days * 0.3));
+            const hoiAnNights = Math.max(2, Math.floor(days * 0.4)); // Hoi An needs at least 2 nights
+            const endNights = days - startNights - hoiAnNights;
+            
+            // Ensure we have at least 1 night for end city
+            if (endNights < 1) {
+              const adjustedStartNights = days - hoiAnNights - 1;
+              const adjustedHoiAnNights = hoiAnNights;
+              const adjustedEndNights = 1;
+              
+              // Add start city nights
+              for (let i = 0; i < adjustedStartNights; i++) {
+                route.push(startCity); // Use startCity, not corridor[0]
+              }
+              // Add Hoi An nights
+              for (let i = 0; i < adjustedHoiAnNights; i++) {
+                route.push("Hoi An");
+              }
+              // Add end city nights
+              for (let i = 0; i < adjustedEndNights; i++) {
+                route.push(endCity); // Use endCity, not corridor[corridor.length - 1]
+              }
+            } else {
+              // Add start city nights
+              for (let i = 0; i < startNights; i++) {
+                route.push(startCity); // Use startCity, not corridor[0]
+              }
+              // Add Hoi An nights
+              for (let i = 0; i < hoiAnNights; i++) {
+                route.push("Hoi An");
+              }
+              // Add end city nights
+              for (let i = 0; i < endNights; i++) {
+                route.push(endCity); // Use endCity, not corridor[corridor.length - 1]
+              }
+            }
+            // Trim to exact days (safety check)
+            route = route.slice(0, days);
+          } else {
+            // Hoi An not in corridor, use standard compression but then insert it
+            for (let d = 0; d < days; d++) {
+              const idx = Math.round((d * (corridorCities - 1)) / (days - 1));
+              route.push(corridor[idx]);
+            }
+          }
+        } else {
+          // Standard compression for other routes
+          for (let d = 0; d < days; d++) {
+            const idx = Math.round((d * (corridorCities - 1)) / (days - 1));
+            route.push(corridor[idx]);
+          }
         }
+        
         let finalRoute = applyCambodiaExtensionToRoute(route, travellerProfile);
         if (requiredCities.length > 0) {
           finalRoute = prioritizeRequiredCities(finalRoute, requiredCities, days);
         }
+        // Ensure intermediate cities are inserted (this will add Hoi An if missing)
+        finalRoute = insertIntermediateCities(finalRoute, days, startCity, endCity);
         return finalRoute;
       }
 
       // CASE 2: more days than corridor cities → start with 1 night per city,
       // then distribute extra nights across key hubs.
-      const baseNights = new Array(corridorCities).fill(1);
-      let extra = days - corridorCities;
+      
+      // For 10+ day North-South routes, use comprehensive route template
+      const startRegion = getCityRegion(startCity);
+      const endRegion = getCityRegion(endCity);
+      const isNorthSouth = (startRegion === "north" && endRegion === "south") || 
+                          (startRegion === "south" && endRegion === "north");
+      
+      let route = [];
+      if (isNorthSouth && days >= 10 && startRegion === "north" && endRegion === "south") {
+        // Comprehensive 10+ day route: Hanoi → Ninh Binh → Sapa → Hoi An → Ho Chi Minh City → Mekong Delta
+        const hanoiNights = 2;
+        const ninhBinhNights = 1; // Always include Ninh Binh for 10+ day routes
+        const sapaNights = 2;
+        const hoiAnNights = Math.max(2, Math.floor((days - hanoiNights - ninhBinhNights - sapaNights - 3) * 0.4)); // Reserve 3 for HCMC+Mekong+departure
+        const remainingDays = days - hanoiNights - ninhBinhNights - sapaNights - hoiAnNights;
+        const mekongNights = 1; // Always include Mekong Delta for 14+ days
+        const hcmcNights = Math.max(2, remainingDays - mekongNights - 1); // Reserve 1 for departure day
+        const departureDay = 1; // Last day must be in Ho Chi Minh City
+        
+        // Build comprehensive route
+        for (let i = 0; i < hanoiNights; i++) route.push("Hanoi");
+        for (let i = 0; i < ninhBinhNights; i++) route.push("Ninh Binh");
+        for (let i = 0; i < sapaNights; i++) route.push("Sapa");
+        for (let i = 0; i < hoiAnNights; i++) route.push("Hoi An");
+        for (let i = 0; i < hcmcNights; i++) route.push("Ho Chi Minh City");
+        for (let i = 0; i < mekongNights; i++) route.push("Mekong Delta");
+        route.push("Ho Chi Minh City"); // Departure day
+        
+        // Ensure exact length (should be correct, but safety check)
+        route = route.slice(0, days);
+        // Double-check last day is Ho Chi Minh City
+        if (route.length > 0 && route[route.length - 1] !== "Ho Chi Minh City") {
+          route[route.length - 1] = "Ho Chi Minh City";
+        }
+      } else {
+        // Standard CASE 2 logic
+        const baseNights = new Array(corridorCities).fill(1);
+        let extra = days - corridorCities;
 
-      // Give extra nights to big hubs, start, and end, in a round-robin way
-      while (extra > 0) {
-        for (let i = 0; i < corridorCities && extra > 0; i++) {
-          const city = corridor[i];
-          const isStart = i === 0;
-          const isEnd = i === corridorCities - 1;
-          if (BIG_STAY_CITIES.has(city) || isStart || isEnd) {
-            baseNights[i] += 1;
-            extra -= 1;
+        // Give extra nights to big hubs, start, and end, in a round-robin way
+        while (extra > 0) {
+          for (let i = 0; i < corridorCities && extra > 0; i++) {
+            const city = corridor[i];
+            const isStart = i === 0;
+            const isEnd = i === corridorCities - 1;
+            if (BIG_STAY_CITIES.has(city) || isStart || isEnd) {
+              baseNights[i] += 1;
+              extra -= 1;
+            }
           }
         }
-      }
 
-      const route = [];
-      for (let i = 0; i < corridorCities; i++) {
-        for (let n = 0; n < baseNights[i]; n++) {
-          route.push(corridor[i]);
+        for (let i = 0; i < corridorCities; i++) {
+          for (let n = 0; n < baseNights[i]; n++) {
+            route.push(corridor[i]);
+          }
         }
       }
 
       // Apply Cambodia extension if needed
       let finalRoute = applyCambodiaExtensionToRoute(route, travellerProfile);
       
-      // Prioritize required cities from places to visit
-      if (requiredCities.length > 0) {
-        finalRoute = prioritizeRequiredCities(finalRoute, requiredCities, days);
-      }
-
-      // Optimize route for tour level (geographic logic + level considerations)
-      finalRoute = optimizeRouteForLevel(finalRoute, days, tourLevel);
+      // For comprehensive 10+ day routes, preserve the structure (don't modify too much)
+      const isComprehensiveRoute = isNorthSouth && days >= 10 && startRegion === "north" && endRegion === "south" && 
+                                   finalRoute.includes("Ninh Binh") && finalRoute.includes("Sapa") && finalRoute.includes("Hoi An");
       
-      // Ensure route is geographically logical (no unnecessary backtracking)
-      finalRoute = ensureGeographicLogic(finalRoute, startCity, endCity);
+      if (!isComprehensiveRoute) {
+      // NEW: Insert intermediate cities if route is too simple
+      finalRoute = insertIntermediateCities(finalRoute, days, startCity, endCity);
+      
+      // For 10+ day North-South routes, ensure Ninh Binh is included if missing
+      if (isNorthSouth && days >= 10 && startRegion === "north" && endRegion === "south") {
+        const routeSet = new Set(finalRoute);
+        if (!routeSet.has("Ninh Binh") && finalRoute.length >= 3) {
+          // Insert Ninh Binh after Hanoi (typically after day 2)
+          const insertIndex = Math.min(2, finalRoute.length - 1);
+          finalRoute.splice(insertIndex, 0, "Ninh Binh");
+          // Trim to exact days
+          finalRoute = finalRoute.slice(0, days);
+        }
+      }
+        
+        // Prioritize required cities from places to visit
+        if (requiredCities.length > 0) {
+          finalRoute = prioritizeRequiredCities(finalRoute, requiredCities, days);
+        }
+
+        // NEW: Prevent backtracking
+        finalRoute = preventBacktracking(finalRoute);
+
+        // Optimize route for tour level (geographic logic + level considerations)
+        finalRoute = optimizeRouteForLevel(finalRoute, days, tourLevel);
+        
+        // Ensure route is geographically logical (no unnecessary backtracking)
+        finalRoute = ensureGeographicLogic(finalRoute, startCity, endCity);
+      } else {
+        // For comprehensive routes, only do light optimization - preserve structure
+        // Just ensure last day is in end city
+        if (finalRoute[finalRoute.length - 1] !== endCity) {
+          finalRoute[finalRoute.length - 1] = endCity;
+        }
+        // Ensure route length matches exactly
+        finalRoute = finalRoute.slice(0, days);
+      }
+      
+      // NEW: Validate and auto-correct route before returning
+      finalRoute = validateAndCorrectRoute(finalRoute, days, startCity, endCity);
 
       return finalRoute;
     }
@@ -8303,12 +8809,101 @@
     }
 
     // Extract route (cities) from itinerary day descriptions
+    // NEW: Extract route from destinations field (more reliable)
+    function extractRouteFromDestinations(destinationsStr, startCity, endCity, numDays) {
+      if (!destinationsStr) return null;
+      
+      // Parse destinations: "Ho Chi Minh city, Mui Ne, Da Lat, Da Nang, Hoi An, Ha Noi, Ninh Binh"
+      const cityNameMap = {
+        "Ho Chi Minh city": "Ho Chi Minh City",
+        "Ho Chi Minh City": "Ho Chi Minh City",
+        "Saigon": "Ho Chi Minh City",
+        "Ha Noi": "Hanoi",
+        "Hanoi": "Hanoi",
+        "Hoi An": "Hoi An",
+        "Da Nang": "Da Nang",
+        "Da Lat": "Da Lat",
+        "Dalat": "Da Lat",
+        "Nha Trang": "Nha Trang",
+        "Mui Ne": "Mui Ne",
+        "Ninh Binh": "Ninh Binh",
+        "Sapa": "Sapa",
+        "Sa Pa": "Sapa",
+        "Ha Long Bay": "Ha Long Bay",
+        "Halong Bay": "Ha Long Bay",
+        "Cat Ba Island": "Cat Ba",
+        "Cat Ba": "Cat Ba",
+        "Lan Ha Bay": "Lan Ha Bay",
+        "Mekong Delta": "Mekong Delta",
+        "Can Tho": "Can Tho",
+        "Hue": "Hue",
+        "Phong Nha": "Phong Nha",
+        "Mai Chau": "Mai Chau"
+      };
+      
+      const destinations = destinationsStr.split(",").map(d => d.trim());
+      const route = [];
+      
+      // Start with start city
+      route.push(startCity);
+      
+      // Add intermediate cities from destinations
+      for (const dest of destinations) {
+        const normalizedDest = cityNameMap[dest] || dest;
+        // Skip if it's the start or end city (we'll add end city at the end)
+        if (normalizedDest !== startCity && normalizedDest !== endCity) {
+          // Check if city is already in route (avoid duplicates)
+          if (!route.includes(normalizedDest)) {
+            route.push(normalizedDest);
+          }
+        }
+      }
+      
+      // Add end city
+      if (endCity && !route.includes(endCity)) {
+        route.push(endCity);
+      }
+      
+      // Distribute days across route
+      if (route.length === 0) return null;
+      
+      const distributedRoute = [];
+      const baseNights = Math.floor(numDays / route.length);
+      const extraNights = numDays % route.length;
+      
+      for (let i = 0; i < route.length; i++) {
+        const nights = baseNights + (i < extraNights ? 1 : 0);
+        for (let j = 0; j < nights; j++) {
+          distributedRoute.push(route[i]);
+        }
+      }
+      
+      // Ensure exact length
+      while (distributedRoute.length < numDays) {
+        distributedRoute.push(distributedRoute[distributedRoute.length - 1] || endCity);
+      }
+      return distributedRoute.slice(0, numDays);
+    }
+
     function extractRouteFromItinerary(itineraryData, isDetailed = false) {
       if (!itineraryData || !itineraryData.days) return null;
       
       const startCity = extractCityName(itineraryData.startsIn);
       const endCity = extractCityName(itineraryData.endsIn);
       const numDays = itineraryData.days.length;
+      
+      // NEW: Try destinations field first (most reliable)
+      if (itineraryData.destinations) {
+        const routeFromDestinations = extractRouteFromDestinations(
+          itineraryData.destinations, 
+          startCity, 
+          endCity, 
+          numDays
+        );
+        if (routeFromDestinations && routeFromDestinations.length === numDays) {
+          return routeFromDestinations;
+        }
+      }
       
       // City mapping for variations
       const cityMap = {
@@ -8513,16 +9108,289 @@
       return city;
     }
     
+    // OPTION 3: Find matching brief or detailed itinerary based on days, start, and end cities
+    function findMatchingBriefOrDetailedItinerary(numDays, startCity, endCity, isDetailed = false) {
+      const itinerarySource = isDetailed ? detailedItineraries : briefItineraries;
+      if (!itinerarySource) return null;
+      
+      // Normalize city names for comparison
+      const normalizeCity = (city) => {
+        if (!city) return "";
+        const normalized = normalizeCityName(city);
+        // Handle common variations
+        if (normalized.toLowerCase().includes("ho chi minh") || normalized.toLowerCase().includes("saigon") || normalized.toLowerCase().includes("hcmc")) {
+          return "Ho Chi Minh City";
+        }
+        if (normalized.toLowerCase().includes("hanoi") || normalized.toLowerCase().includes("ha noi")) {
+          return "Hanoi";
+        }
+        return normalized;
+      };
+      
+      const normalizedStart = normalizeCity(startCity);
+      const normalizedEnd = normalizeCity(endCity);
+      
+      // Try exact day match first
+      const exactMatch = itinerarySource[String(numDays)];
+      if (exactMatch) {
+        const matchStart = normalizeCity(extractCityName(exactMatch.startsIn || ''));
+        const matchEnd = normalizeCity(extractCityName(exactMatch.endsIn || ''));
+        
+        // Check if cities match (flexible matching)
+        const startMatches = !startCity || matchStart === normalizedStart || 
+                            matchStart.toLowerCase().includes(normalizedStart.toLowerCase()) ||
+                            normalizedStart.toLowerCase().includes(matchStart.toLowerCase());
+        const endMatches = !endCity || matchEnd === normalizedEnd ||
+                           matchEnd.toLowerCase().includes(normalizedEnd.toLowerCase()) ||
+                           normalizedEnd.toLowerCase().includes(matchEnd.toLowerCase());
+        
+        if (startMatches && endMatches) {
+          return exactMatch;
+        }
+      }
+      
+      // Try nearby day matches (±2 days) if exact match not found
+      for (let offset = -2; offset <= 2; offset++) {
+        if (offset === 0) continue; // Already checked
+        const dayKey = String(numDays + offset);
+        const match = itinerarySource[dayKey];
+        if (match) {
+          const matchStart = normalizeCity(extractCityName(match.startsIn || ''));
+          const matchEnd = normalizeCity(extractCityName(match.endsIn || ''));
+          
+          const startMatches = !startCity || matchStart === normalizedStart || 
+                              matchStart.toLowerCase().includes(normalizedStart.toLowerCase()) ||
+                              normalizedStart.toLowerCase().includes(matchStart.toLowerCase());
+          const endMatches = !endCity || matchEnd === normalizedEnd ||
+                             matchEnd.toLowerCase().includes(normalizedEnd.toLowerCase()) ||
+                             normalizedEnd.toLowerCase().includes(matchEnd.toLowerCase());
+          
+          if (startMatches && endMatches) {
+            return match;
+          }
+        }
+      }
+      
+      return null;
+    }
+    
+    // NEW: Auto-match user input to existing itineraries
+    function findBestMatchingItinerary(startCity, endCity, days, area) {
+      if (!startCity || !endCity || !days) return null;
+      
+      const normalizeCity = (city) => {
+        if (!city) return "";
+        return city.toLowerCase()
+          .replace(/ho chi minh|saigon|sai gon/gi, "ho chi minh city")
+          .replace(/hanoi|ha noi/gi, "hanoi")
+          .replace(/da nang|danang/gi, "da nang")
+          .replace(/hoi an|hoian/gi, "hoi an")
+          .trim();
+      };
+      
+      const normalizedStart = normalizeCity(startCity);
+      const normalizedEnd = normalizeCity(endCity);
+      
+      let bestMatch = null;
+      let bestScore = 0;
+      let bestIsDetailed = false;
+      
+      // Search brief itineraries
+      for (const [daysKey, itinerary] of Object.entries(briefItineraries)) {
+        const itineraryDays = parseInt(daysKey) || itinerary.days?.length || 0;
+        const matchStart = normalizeCity(extractCityName(itinerary.startsIn || ''));
+        const matchEnd = normalizeCity(extractCityName(itinerary.endsIn || ''));
+        
+        let score = 0;
+        
+        // Start city match (10 points)
+        if (matchStart === normalizedStart) {
+          score += 10;
+        } else if (matchStart.includes(normalizedStart) || normalizedStart.includes(matchStart)) {
+          score += 5;
+        }
+        
+        // End city match (10 points)
+        if (matchEnd === normalizedEnd) {
+          score += 10;
+        } else if (matchEnd.includes(normalizedEnd) || normalizedEnd.includes(matchEnd)) {
+          score += 5;
+        }
+        
+        // Days match (5 points, allow ±2 days)
+        const daysDiff = Math.abs(itineraryDays - days);
+        if (daysDiff === 0) {
+          score += 5;
+        } else if (daysDiff <= 2) {
+          score += 3 - daysDiff; // 3 points for ±1, 2 points for ±2
+        }
+        
+        // Area match (5 points)
+        if (area) {
+          const areaLower = area.toLowerCase();
+          const destinations = (itinerary.destinations || "").toLowerCase();
+          if (areaLower.includes("north") && destinations.includes("hanoi")) score += 5;
+          if (areaLower.includes("south") && destinations.includes("ho chi minh")) score += 5;
+          if (areaLower.includes("central") && destinations.includes("hoi an")) score += 5;
+        }
+        
+        if (score > bestScore && score >= 15) { // Minimum score threshold
+          bestScore = score;
+          bestMatch = itinerary;
+          bestIsDetailed = false;
+        }
+      }
+      
+      // Search detailed itineraries
+      for (const [daysKey, itinerary] of Object.entries(detailedItineraries)) {
+        const itineraryDays = parseInt(daysKey) || itinerary.days?.length || 0;
+        const matchStart = normalizeCity(extractCityName(itinerary.startsIn || ''));
+        const matchEnd = normalizeCity(extractCityName(itinerary.endsIn || ''));
+        
+        let score = 0;
+        
+        // Start city match (10 points)
+        if (matchStart === normalizedStart) {
+          score += 10;
+        } else if (matchStart.includes(normalizedStart) || normalizedStart.includes(matchStart)) {
+          score += 5;
+        }
+        
+        // End city match (10 points)
+        if (matchEnd === normalizedEnd) {
+          score += 10;
+        } else if (matchEnd.includes(normalizedEnd) || normalizedEnd.includes(matchEnd)) {
+          score += 5;
+        }
+        
+        // Days match (5 points, allow ±2 days)
+        const daysDiff = Math.abs(itineraryDays - days);
+        if (daysDiff === 0) {
+          score += 5;
+        } else if (daysDiff <= 2) {
+          score += 3 - daysDiff;
+        }
+        
+        // Area match (5 points)
+        if (area) {
+          const areaLower = area.toLowerCase();
+          const destinations = (itinerary.destinations || "").toLowerCase();
+          if (areaLower.includes("north") && destinations.includes("hanoi")) score += 5;
+          if (areaLower.includes("south") && destinations.includes("ho chi minh")) score += 5;
+          if (areaLower.includes("central") && destinations.includes("hoi an")) score += 5;
+        }
+        
+        if (score > bestScore && score >= 15) {
+          bestScore = score;
+          bestMatch = itinerary;
+          bestIsDetailed = true;
+        }
+      }
+      
+      return bestMatch ? { itinerary: bestMatch, isDetailed: bestIsDetailed, score: bestScore } : null;
+    }
+    
+    // NEW: Show confirmation dialog for auto-matched itinerary (better UI)
+    function showItineraryMatchConfirmation(match, onConfirm, onCancel) {
+      const itinerary = match.itinerary;
+      const isDetailed = match.isDetailed;
+      const matchDays = itinerary.days?.length || 0;
+      const userDays = parseInt(document.getElementById("numDays")?.value || 0);
+      
+      // Create modal dialog
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); z-index: 10000; display: flex;
+        align-items: center; justify-content: center;
+      `;
+      
+      modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 8px; max-width: 500px; margin: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+          <h3 style="margin-top: 0; color: #2c3e50; font-size: 20px;">🔍 Found Matching Itinerary</h3>
+          <p style="margin: 15px 0; line-height: 1.6; font-size: 14px;">
+            <strong style="color: #2c3e50;">"${itinerary.name}"</strong><br>
+            ${isDetailed ? 'Detailed' : 'Brief'} itinerary (${matchDays} days)<br>
+            ${itinerary.startsIn ? `📍 Starts: ${extractCityName(itinerary.startsIn)}` : ''}<br>
+            ${itinerary.endsIn ? `📍 Ends: ${extractCityName(itinerary.endsIn)}` : ''}
+          </p>
+          ${userDays !== matchDays ? `<p style="color: #e67e22; margin: 15px 0; padding: 10px; background: #fff3cd; border-radius: 4px; font-size: 13px;">⚠️ Your itinerary is ${userDays} days, template is ${matchDays} days. Route will be adjusted automatically.</p>` : ''}
+          <p style="margin: 15px 0; color: #555; font-size: 14px;">
+            Use this as the base route? Your preferences (places to visit, tour level) will be merged into it.
+          </p>
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button id="confirmNo" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Cancel (Use Geographic Route)</button>
+            <button id="confirmYes" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600;">✓ Use This Template</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      modal.querySelector('#confirmYes').onclick = (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        if (modal.parentNode) {
+          document.body.removeChild(modal);
+        }
+        if (onConfirm) {
+          onConfirm();
+          // After confirming, regenerate the itinerary
+          setTimeout(() => {
+            generateDaysData();
+            renderItinerary();
+          }, 100);
+        }
+      };
+      
+      modal.querySelector('#confirmNo').onclick = (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        if (modal.parentNode) {
+          document.body.removeChild(modal);
+        }
+        if (onCancel) {
+          onCancel();
+          // After cancelling, continue with geographic route
+          setTimeout(() => {
+            generateDaysData();
+            renderItinerary();
+          }, 100);
+        }
+      };
+      
+      // Close on background click
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          if (modal.parentNode) {
+            document.body.removeChild(modal);
+          }
+          if (onCancel) {
+            onCancel();
+            setTimeout(() => {
+              generateDaysData();
+              renderItinerary();
+            }, 100);
+          }
+        }
+      };
+    }
+    
     // Load itinerary template into generator
     function loadItineraryIntoGenerator(itineraryData, isDetailed = false) {
       if (!itineraryData) return;
       
       // Extract and store route
       const route = extractRouteFromItinerary(itineraryData, isDetailed);
+      
+      // Store original template cities to preserve them
+      const templateStartCity = itineraryData.startsIn ? extractCityName(itineraryData.startsIn) : null;
+      const templateEndCity = itineraryData.endsIn ? extractCityName(itineraryData.endsIn) : null;
+      
       state.selectedItineraryTemplate = {
         route: route,
         data: itineraryData,
-        isDetailed: isDetailed
+        isDetailed: isDetailed,
+        originalStartCity: templateStartCity, // Store original for comparison
+        originalEndCity: templateEndCity      // Store original for comparison
       };
       
       // Auto-populate form fields
@@ -8949,11 +9817,214 @@
     window.removePicture = removePicture;
     window.renderPictureGallery = renderPictureGallery;
 
+    // Schedule rest days based on analysis (Hoi An, Hanoi, Ho Chi Minh City get free days)
+    function scheduleRestDays(daysData, route, tourLevel) {
+      if (!daysData || daysData.length === 0) return daysData;
+      
+      const levelLower = (tourLevel || "").toLowerCase();
+      const restDayCities = new Set(["Hoi An", "Hanoi", "Ho Chi Minh City", "Nha Trang", "Hue", "Da Nang", "Da Lat"]);
+      
+      // Track city stays
+      const cityStays = {};
+      for (let i = 0; i < route.length; i++) {
+        const city = route[i];
+        if (!cityStays[city]) {
+          cityStays[city] = { start: i, count: 0 };
+        }
+        cityStays[city].count++;
+      }
+      
+      // Add free days in major cities with longer stays
+      for (const [city, stay] of Object.entries(cityStays)) {
+        if (restDayCities.has(city) && stay.count >= 3) {
+          // For 3+ night stays, add a free day in the middle
+          const freeDayIndex = stay.start + Math.floor(stay.count / 2);
+          if (freeDayIndex < daysData.length && daysData[freeDayIndex]) {
+            // Mark as free day - light activities
+            if (!daysData[freeDayIndex].morning || daysData[freeDayIndex].morning.includes("Free") || daysData[freeDayIndex].morning.includes("free")) {
+              daysData[freeDayIndex].morning = "Free morning for rest, shopping, or café time.";
+            }
+            if (!daysData[freeDayIndex].afternoon || daysData[freeDayIndex].afternoon.includes("Free") || daysData[freeDayIndex].afternoon.includes("free")) {
+              daysData[freeDayIndex].afternoon = "Free afternoon - optional activities or beach time.";
+            }
+            if (!daysData[freeDayIndex].evening || daysData[freeDayIndex].evening.includes("Free") || daysData[freeDayIndex].evening.includes("free")) {
+              daysData[freeDayIndex].evening = "Evening at leisure, suggested night walk or local dining.";
+            }
+          }
+        }
+      }
+      
+      // Add free day after long transfers (flights)
+      for (let i = 1; i < daysData.length; i++) {
+        const prevDay = daysData[i - 1];
+        const currentDay = daysData[i];
+        if (prevDay && currentDay && prevDay.transfer && prevDay.transfer.includes("Flight")) {
+          // Flight day - next day should be lighter
+          if (i < daysData.length && daysData[i]) {
+            if (!daysData[i].morning || daysData[i].morning.includes("Free")) {
+              daysData[i].morning = "Free morning for rest after travel.";
+            }
+          }
+        }
+      }
+      
+      // Last day should be free for departure prep
+      if (daysData.length > 0 && daysData[daysData.length - 1]) {
+        const lastDay = daysData[daysData.length - 1];
+        // Always set last day as departure day with free time
+        lastDay.morning = "Free time for last-minute shopping or café visit.";
+        lastDay.afternoon = "Airport transfer and departure.";
+        lastDay.evening = "";
+        // Remove any transfer text on last day
+        if (lastDay.transfer && !lastDay.transfer.includes("Departure")) {
+          lastDay.transfer = "";
+        }
+      }
+      
+      return daysData;
+    }
+
     function generateDaysData() {
       const t = state.traveller;
       state.daysData = [];
+      state.templateFeedback = null; // Clear previous feedback
 
-      // Check for loaded itinerary template first
+      // NEW: Auto-match itinerary - simplified and reliable logic
+      const currentSignature = `${t.startCity || ''}|${t.endCity || ''}|${t.numDays || ''}|${t.area || ''}`;
+      
+      // Check if user previously cancelled for these exact inputs
+      const wasCancelled = state.lastAutoMatchedSignature === currentSignature + "_cancelled";
+      
+      // Check if we already confirmed this exact match
+      const alreadyConfirmed = state.lastAutoMatchedSignature === currentSignature && 
+                               state.selectedItineraryTemplate;
+      
+      // Always try to auto-match if:
+      // 1. User hasn't cancelled for these exact inputs
+      // 2. We haven't already confirmed for these exact inputs
+      // 3. Inputs are provided
+      if (!wasCancelled && !alreadyConfirmed && t.startCity && t.endCity && t.numDays) {
+        // Clear template if it doesn't match current inputs (allows re-matching)
+        if (state.selectedItineraryTemplate) {
+          const template = state.selectedItineraryTemplate;
+          const templateStart = template.originalStartCity || (template.data?.startsIn ? extractCityName(template.data.startsIn) : null);
+          const templateEnd = template.originalEndCity || (template.data?.endsIn ? extractCityName(template.data.endsIn) : null);
+          const templateDays = template.data?.days?.length || 0;
+          
+          const normalizeCityName = (city) => {
+            if (!city) return "";
+            return city.toLowerCase()
+              .replace(/ho chi minh|saigon|sai gon/gi, "ho chi minh city")
+              .replace(/hanoi|ha noi/gi, "hanoi")
+              .trim();
+          };
+          
+          const templateMatches = 
+            (!t.startCity || !templateStart || normalizeCityName(t.startCity) === normalizeCityName(templateStart)) &&
+            (!t.endCity || !templateEnd || normalizeCityName(t.endCity) === normalizeCityName(templateEnd)) &&
+            (!t.numDays || templateDays === t.numDays || Math.abs(templateDays - t.numDays) <= 2);
+          
+          // If template doesn't match, clear it to allow re-matching
+          if (!templateMatches) {
+            state.selectedItineraryTemplate = null;
+            state.lastAutoMatchedSignature = null;
+          }
+        }
+        
+        // Try to find a match
+        const match = findBestMatchingItinerary(t.startCity, t.endCity, t.numDays, t.area);
+        
+        if (match) {
+          // Check if this is the same template we already have loaded
+          const existingTemplate = state.selectedItineraryTemplate;
+          const isSameTemplate = existingTemplate && 
+            existingTemplate.data?.name === match.itinerary.name;
+          
+          // Only show confirmation if it's a different template
+          if (!isSameTemplate) {
+            // Show confirmation dialog
+            showItineraryMatchConfirmation(
+              match,
+              () => {
+                // User confirmed - auto-load the matched itinerary
+                loadItineraryIntoGenerator(match.itinerary, match.isDetailed);
+                // Store signature so we don't ask again for same inputs
+                state.lastAutoMatchedSignature = currentSignature;
+                // Continue with generation (don't call generateDaysData again - it will continue below)
+                // The template is now loaded, so the rest of generateDaysData will use it
+              },
+              () => {
+                // User cancelled - continue with geographic route
+                state.selectedItineraryTemplate = null;
+                state.lastAutoMatchedSignature = currentSignature + "_cancelled";
+                // Continue generation with geographic route (don't call generateDaysData again)
+              }
+            );
+            // Return early - wait for user confirmation
+            // After confirmation, user needs to click Generate again, OR we continue below
+            // Actually, let's make it continue automatically after confirmation
+            return;
+          }
+        } else {
+          // No match found - mark as checked (but don't prevent future checks if inputs change)
+          if (!state.lastAutoMatchedSignature || !state.lastAutoMatchedSignature.endsWith('_cancelled')) {
+            state.lastAutoMatchedSignature = currentSignature + "_nomatch";
+          }
+        }
+      } else if (state.selectedItineraryTemplate) {
+        // Template exists - check if inputs changed significantly
+        const inputsChanged = !state.lastAutoMatchedSignature || 
+          state.lastAutoMatchedSignature !== currentSignature;
+        
+        if (inputsChanged) {
+        // Template exists but inputs changed - check if template still matches
+        const template = state.selectedItineraryTemplate;
+        const templateStart = template.originalStartCity || (template.data?.startsIn ? extractCityName(template.data.startsIn) : null);
+        const templateEnd = template.originalEndCity || (template.data?.endsIn ? extractCityName(template.data.endsIn) : null);
+        const templateDays = template.data?.days?.length || 0;
+        
+        const normalizeCityName = (city) => {
+          if (!city) return "";
+          return city.toLowerCase()
+            .replace(/ho chi minh|saigon|sai gon/gi, "ho chi minh city")
+            .replace(/hanoi|ha noi/gi, "hanoi")
+            .trim();
+        };
+        
+        const stillMatches = 
+          (!t.startCity || !templateStart || normalizeCityName(t.startCity) === normalizeCityName(templateStart)) &&
+          (!t.endCity || !templateEnd || normalizeCityName(t.endCity) === normalizeCityName(templateEnd)) &&
+          (!t.numDays || templateDays === t.numDays || Math.abs(templateDays - t.numDays) <= 2);
+        
+        if (!stillMatches) {
+          // Inputs changed significantly - clear template to allow re-matching
+          state.selectedItineraryTemplate = null;
+          state.lastAutoMatchedSignature = null;
+          // Re-run auto-matching with new inputs
+          const newMatch = findBestMatchingItinerary(t.startCity, t.endCity, t.numDays, t.area);
+          if (newMatch) {
+            showItineraryMatchConfirmation(
+              newMatch,
+              () => {
+                loadItineraryIntoGenerator(newMatch.itinerary, newMatch.isDetailed);
+                state.lastAutoMatchedSignature = currentSignature;
+                generateDaysData();
+                renderItinerary();
+              },
+              () => {
+                state.selectedItineraryTemplate = null;
+                state.lastAutoMatchedSignature = currentSignature + "_cancelled";
+                generateDaysData();
+                renderItinerary();
+              }
+            );
+            return;
+          }
+        }
+        }
+      }
+
+      // Check for loaded itinerary template first (manual or auto-matched)
       // BUT: only use it if it has intermediate cities (more than just start/end)
       if (state.selectedItineraryTemplate && state.selectedItineraryTemplate.route) {
         let templateRoute = [...state.selectedItineraryTemplate.route]; // Copy array
@@ -8973,18 +10044,116 @@
            uniqueCities.includes(t.startCity) && uniqueCities.includes(t.endCity) &&
            templateRoute.filter(c => c !== t.startCity && c !== t.endCity).length > 0);
         
+        // NEW: Enhance template route with user preferences
+        // Always preserve intermediate cities, adjust start/end if user changed them
+        let enhancedRoute = [...templateRoute];
+        
+        // Extract user's "Places to Visit" and merge into route
+        const placesToVisit = t.placesToVisit || [];
+        const requiredCities = extractRequiredCities(placesToVisit);
+        
+        // If user changed start/end city, adjust route but preserve intermediate cities
+        const template = state.selectedItineraryTemplate;
+        const templateStartCity = template.originalStartCity || (template.data && template.data.startsIn ? extractCityName(template.data.startsIn) : null);
+        const templateEndCity = template.originalEndCity || (template.data && template.data.endsIn ? extractCityName(template.data.endsIn) : null);
+        
+        // Check if user changed start/end cities
+        const userChangedStart = t.startCity && templateStartCity && normalizeCityName(t.startCity) !== normalizeCityName(templateStartCity);
+        const userChangedEnd = t.endCity && templateEndCity && normalizeCityName(t.endCity) !== normalizeCityName(templateEndCity);
+        
+        if (userChangedStart || userChangedEnd) {
+          // User changed cities - adjust route but preserve intermediate cities
+          // Option A: Preserve intermediate cities, adjust start/end
+          if (t.startCity) {
+            enhancedRoute[0] = t.startCity;
+          }
+          if (t.endCity) {
+            enhancedRoute[enhancedRoute.length - 1] = t.endCity;
+          }
+        } else {
+          // User didn't change cities - use template as-is
+          if (t.startCity) enhancedRoute[0] = t.startCity;
+          if (t.endCity) enhancedRoute[enhancedRoute.length - 1] = t.endCity;
+        }
+        
+        // NEW: Always include cities from "Places to Visit"
+        if (requiredCities.length > 0) {
+          const routeSet = new Set(enhancedRoute);
+          const missingCities = requiredCities.filter(city => !routeSet.has(city));
+          
+          if (missingCities.length > 0) {
+            // Add missing cities to route intelligently
+            for (const city of missingCities) {
+              const cityRegion = getCityRegion(city);
+              const startRegion = getCityRegion(enhancedRoute[0]);
+              const endRegion = getCityRegion(enhancedRoute[enhancedRoute.length - 1]);
+              
+              // Find best insertion point based on region
+              let insertIndex = enhancedRoute.length - 1;
+              for (let i = 0; i < enhancedRoute.length; i++) {
+                const routeCityRegion = getCityRegion(enhancedRoute[i]);
+                if (routeCityRegion === cityRegion) {
+                  insertIndex = i + 1;
+                  break;
+                }
+              }
+              
+              // Insert city (will add 1 night, adjust later if needed)
+              enhancedRoute.splice(insertIndex, 0, city);
+            }
+            
+            // Adjust route length to match numDays
+            while (enhancedRoute.length < t.numDays) {
+              // Extend last city
+              enhancedRoute.push(enhancedRoute[enhancedRoute.length - 1]);
+            }
+            enhancedRoute = enhancedRoute.slice(0, t.numDays);
+          }
+        }
+        
         // If start and end are different but route lacks intermediate cities, skip template route
-        if (t.startCity && t.endCity && t.startCity !== t.endCity && !hasIntermediateCities) {
+        const uniqueCitiesAfterEnhancement = [...new Set(enhancedRoute)];
+        const hasIntermediateCitiesAfterEnhancement = uniqueCitiesAfterEnhancement.length > 2 || 
+          (uniqueCitiesAfterEnhancement.length === 2 && t.startCity && t.endCity && 
+           uniqueCitiesAfterEnhancement.includes(t.startCity) && uniqueCitiesAfterEnhancement.includes(t.endCity) &&
+           enhancedRoute.filter(c => c !== t.startCity && c !== t.endCity).length > 0);
+        
+        if (t.startCity && t.endCity && t.startCity !== t.endCity && !hasIntermediateCitiesAfterEnhancement) {
           // Template route is too simple - skip it and use geographic route instead
           state.selectedItineraryTemplate = null;
         } else {
-          // Template route is good - use it but ensure first/last days are correct
+          // Use enhanced route
+          templateRoute = enhancedRoute;
+          
+          // Ensure first/last days are correct
           if (t.startCity && t.endCity) {
             templateRoute[0] = t.startCity;
-            templateRoute[t.numDays - 1] = t.endCity;
+            templateRoute[templateRoute.length - 1] = t.endCity;
           }
           
           if (templateRoute.length === t.numDays) {
+          // NEW: Show visual feedback about template usage
+          const templateName = template.data?.name || "Selected Template";
+          const feedbackParts = [];
+          feedbackParts.push(`<strong>✓ Using Template:</strong> "${templateName}"`);
+          
+          if (requiredCities.length > 0) {
+            feedbackParts.push(`<span style="color: #155724;">➕ Added from your preferences: ${requiredCities.join(", ")}</span>`);
+          }
+          
+          if (userChangedStart || userChangedEnd) {
+            const changes = [];
+            if (userChangedStart) changes.push("start city");
+            if (userChangedEnd) changes.push("end city");
+            feedbackParts.push(`<span style="color: #856404;">📏 Adjusted ${changes.join(" and ")} (preserved intermediate cities)</span>`);
+          }
+          
+          state.templateFeedback = `
+            <div class="alert alert-info" style="padding: 12px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px; color: #0c5460; margin-bottom: 15px;">
+              ${feedbackParts.join("<br>")}
+            </div>
+          `;
+          
           // Use template route - build full day objects with actual itinerary activities
       for (let i = 0; i < t.numDays; i++) {
             const city = templateRoute[i] || t.startCity;
@@ -9149,7 +10318,9 @@
           finalGeoRoute.push(finalGeoRoute[finalGeoRoute.length - 1] || t.startCity);
         }
         finalGeoRoute = finalGeoRoute.slice(0, t.numDays);
-        console.log("Using geographic route (adjusted):", finalGeoRoute, "length:", finalGeoRoute.length);
+        
+        // VALIDATE AND AUTO-CORRECT ROUTE HERE (before using it)
+        finalGeoRoute = validateAndCorrectRoute(finalGeoRoute, t.numDays, t.startCity, t.endCity);
         
         if (finalGeoRoute.length === t.numDays) {
         // Use geographic route - it includes all intermediate cities
@@ -9336,7 +10507,28 @@
       
       // Build route array from days and assign unique activities
       const routeArray = state.daysData.map(d => d.city);
+      
+      // NEW: Schedule rest days based on analysis
+      state.daysData = scheduleRestDays(state.daysData, routeArray, t.tourLevel);
+      
       assignUniqueActivities(routeArray, state.daysData);
+      
+      // Ensure last day is always a departure day (after activities are assigned)
+      // This MUST be the absolute last thing - no code should run after this
+      if (state.daysData.length > 0) {
+        const lastDayIndex = state.daysData.length - 1;
+        const lastDay = state.daysData[lastDayIndex];
+        if (lastDay) {
+          // Force departure day - override any activities
+          lastDay.morning = "Free time for last-minute shopping or café visit.";
+          lastDay.afternoon = "Airport transfer and departure.";
+          lastDay.evening = "";
+          // Clear transfer text unless it contains departure info
+          if (lastDay.transfer && !lastDay.transfer.toLowerCase().includes("departure") && !lastDay.transfer.toLowerCase().includes("airport")) {
+            lastDay.transfer = "";
+          }
+        }
+      }
     }
 
     // City coordinates database (lat, lng) - verified coordinates for accurate map positioning
@@ -9860,9 +11052,13 @@
           </div>
         </header>
       `;
+      // NEW: Show template feedback if available
+      const templateFeedbackHtml = state.templateFeedback || "";
+      
       let headerHtml = `
         <div class="itinerary-header">
           <h2>${headerTitle}</h2>
+          ${templateFeedbackHtml}
           <section class="trip-meta-card">
           <div class="itinerary-header-row">
               ${
@@ -10423,10 +11619,28 @@
     });
 
     function printItinerary() {
-      if (!state.daysData || !state.daysData.length) {
-        alert("Please generate an itinerary first.");
+      // Check if there's content in the itinerary area (more reliable than just checking state.daysData)
+      const itineraryArea = document.getElementById("itineraryArea");
+      if (!itineraryArea) {
+        alert("Itinerary area not found. Please refresh the page.");
         return;
       }
+      
+      const content = itineraryArea.innerHTML.trim();
+      const hasContent = content.length > 0 && 
+        !content.includes("Please fill the form") &&
+        !content.includes("Select pre-defined") &&
+        !content.includes("Please fill the form on the left");
+      
+      // Also check state.daysData as a fallback
+      const hasDaysData = state.daysData && state.daysData.length > 0;
+      
+      if (!hasContent && !hasDaysData) {
+        alert("Please generate an itinerary first.\n\nMake sure you:\n1. Fill out the form\n2. Click 'Generate / Refresh Itinerary'\n3. Wait for the itinerary to appear\n4. Then click 'Print / Save as PDF'");
+        return;
+      }
+      
+      // Proceed with printing
       window.print();
     }
 
